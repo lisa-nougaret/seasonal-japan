@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: seasonal_japan_postgres
+    environment:
+      POSTGRES_USER: seasonal
+      POSTGRES_PASSWORD: seasonal_pw
+      POSTGRES_DB: seasonal_japan
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata_seasonal_japan:/var/lib/postgresql/data
+
+volumes:
+  pgdata_seasonal_japan:
