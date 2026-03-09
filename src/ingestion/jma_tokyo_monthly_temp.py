@@ -1,5 +1,4 @@
 import pandas as pd
-import json
 from sqlalchemy import text
 from src.db import get_engine
 
