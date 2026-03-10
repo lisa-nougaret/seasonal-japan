@@ -1,19 +1,18 @@
 {
-    "sqltools.connections": [
-        {
-            "ssh": "Disabled",
-            "previewLimit": 50,
-            "server": "127.0.0.1",
-            "port": 5432,
-            "driver": "PostgreSQL",
-            "name": "seasonal_japan_postgres_new",
-            "database": "seasonal_japan",
-            "username": "seasonal",
-            "password": "seasonal_pw",
-            "connectionMethod": "Server and Port",
-            "pgOptions": {
-                "ssl": false
-            }
-        }
-    ]
+  "sqltools.connections": [
+    {
+      "name": "seasonal_japan",
+      "driver": "PostgreSQL",
+      "server": "localhost",
+      "port": 55433,
+      "database": "seasonal_japan",
+      "username": "seasonal",
+      "password": "seasonal_pw",
+      "previewLimit": 50,
+      "pgOptions": {
+        "ssl": false
+      }
+    }
+  ], 
+  "python.interpreter.infoVisibility": "never"
 }
