@@ -4,7 +4,7 @@ A data engineering & analytics project exploring Japan's seasonal patterns — c
 ## Stack
 - Python — ingestion, cleaning & feature engineering
 - SQL — analytics models
-- Local warehourse — DuckDB or PostgreSQL
+- Local warehouse — DuckDB or PostgreSQL
 - Visualization — Plotly
 
 ## Repo
