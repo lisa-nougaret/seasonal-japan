@@ -1,4 +1,4 @@
-# Seasonal Japan 🌸🍁❄️
+# Seasonal Japan 🌸
 A data engineering & analytics project exploring Japan's seasonal patterns — cherry blossom bloom timing, autumn foliage timing & climate patterns (temperature, precipitation, snowfall).
 
 ## Stack
