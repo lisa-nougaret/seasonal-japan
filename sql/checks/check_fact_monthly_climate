@@ -8,7 +8,7 @@ SELECT
     MAX(month_start_date) AS last_month
 FROM analytics.fact_monthly_climate;
 
--- Check for duplicate records based on station_code and month_start_date
+-- Check the distribution of records by station
 SELECT
     station_code,
     station_name,
@@ -33,10 +33,10 @@ FROM analytics.fact_monthly_climate
 GROUP BY station_code, month_start_date
 HAVING COUNT(*) > 1;
 
--- Check the range of mean_temp_c and precipitation_mm
+-- Check the range of mean_temp_c
 SELECT
     MIN(mean_temp_c) AS min_temp,
-    MAX(mean_temp_c) AS max_temp,
+    MAX(mean_temp_c) AS max_temp
 FROM analytics.fact_monthly_climate;
 
 -- Check the range of precipitation_mm
