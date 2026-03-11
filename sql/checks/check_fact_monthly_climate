@@ -1,0 +1,70 @@
+-- Check the total number of records in the fact_monthly_climate table
+SELECT COUNT(*) AS total_rows
+FROM analytics.fact_monthly_climate;
+
+-- Check the range of month_start_date
+SELECT
+    MIN(month_start_date) AS first_month,
+    MAX(month_start_date) AS last_month
+FROM analytics.fact_monthly_climate;
+
+-- Check for duplicate records based on station_code and month_start_date
+SELECT
+    station_code,
+    station_name,
+    COUNT(*) AS records
+FROM analytics.fact_monthly_climate
+GROUP BY station_code, station_name
+ORDER BY records DESC;
+
+-- Check for null values in key columns
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(mean_temp_c) AS non_null_temperature,
+    COUNT(precipitation_mm) AS non_null_precipitation
+FROM analytics.fact_monthly_climate;
+
+-- Check for duplicate records based on station_code and month_start_date
+SELECT
+    station_code,
+    month_start_date,
+    COUNT(*) AS duplicate_count
+FROM analytics.fact_monthly_climate
+GROUP BY station_code, month_start_date
+HAVING COUNT(*) > 1;
+
+-- Check the range of mean_temp_c and precipitation_mm
+SELECT
+    MIN(mean_temp_c) AS min_temp,
+    MAX(mean_temp_c) AS max_temp,
+FROM analytics.fact_monthly_climate;
+
+-- Check the range of precipitation_mm
+SELECT
+    MIN(precipitation_mm) AS min_precipitation,
+    MAX(precipitation_mm) AS max_precipitation
+FROM analytics.fact_monthly_climate;
+
+-- Check the distribution of records by season
+SELECT
+    season,
+    COUNT(*) AS records
+FROM analytics.fact_monthly_climate
+GROUP BY season
+ORDER BY season;
+
+-- Check the distribution of records by quarter
+SELECT
+    quarter,
+    COUNT(*) AS records
+FROM analytics.fact_monthly_climate
+GROUP BY quarter
+ORDER BY quarter;
+
+-- Check the average temperature by season
+SELECT
+    season,
+    ROUND(AVG(mean_temp_c), 2) AS avg_temp
+FROM analytics.fact_monthly_climate
+GROUP BY season
+ORDER BY avg_temp;
