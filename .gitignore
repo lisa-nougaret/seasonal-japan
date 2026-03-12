@@ -1,12 +1,33 @@
+# Virtual environment
 .venv/
+
+# Environment variables
 .env
+
+# Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+
+# Jupyter
 .ipynb_checkpoints/
 
+# OS files
+.DS_Store
+Thumbs.db
+
+# Data folders (ignore generated data)
 data/raw/*
 data/interim/*
 data/curated/*
+
+# Keep folder structure
 !data/raw/.gitkeep
 !data/interim/.gitkeep
 !data/curated/.gitkeep
+
+# Logs
+*.log
