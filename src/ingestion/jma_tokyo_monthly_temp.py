@@ -7,7 +7,7 @@ import requests
 from bs4 import BeautifulSoup
 from sqlalchemy import text
 
-from src.db import get_engine
+from src.db.db import get_engine
 
 BASE_URL = "https://www.data.jma.go.jp/stats/etrn/view/monthly_s3_en.php"
 STATION_LIST_URL = "https://www.data.jma.go.jp/stats/data/en/smp/index.html"
