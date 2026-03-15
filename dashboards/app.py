@@ -1,3 +1,4 @@
+import pandas as pd
 import streamlit as st
 import plotly.express as px
 from src.viz.dashboard_queries import (
@@ -49,6 +50,10 @@ temp_fig = px.line(
     x="date_key",
     y="mean_temp_c",
     title=f"🌡️ Monthly Temperature • {station_name}",
+    labels={
+        "date_key": "Date",
+        "mean_temp_c": "Average temperature (°C)"
+    }
 )
 
 precip_fig = px.line(
@@ -56,6 +61,10 @@ precip_fig = px.line(
     x="date_key",
     y="precipitation_mm",
     title=f"🌧️ Monthly Precipitation • {station_name}",
+    labels={
+        "date_key": "Date",
+        "precipitation_mm": "Precipitation (mm)"
+    }
 )
 
 seasonal_avg = (
@@ -63,21 +72,51 @@ seasonal_avg = (
     .mean()
 )
 
-season_order = ["spring", "summer", "fall", "winter"]
-seasonal_avg["season"] = seasonal_avg["season"].astype("category")
-seasonal_avg["season"] = seasonal_avg["season"].cat.set_categories(season_order, ordered=True)
+# Map season names to emojis for visualization
+season_map = {
+    "spring": "🌷",
+    "summer": "☀️",
+    "fall": "🍂",
+    "winter": "🌨️"
+}
+seasonal_avg["season"] = seasonal_avg["season"].map(season_map)
+
+# Map season names to colors for visualization
+season_colors = {
+    "🌷": "#DE52AF",  # Tulip pink
+    "☀️": "#ECB633",  # Sun yellow
+    "🍂": "#E0773B",    # Maple orange
+    "🌨️": "#C7C3FF"   # Snowy purple
+}
+
+season_order = ["🌷", "☀️", "🍂", "🌨️"]
+seasonal_avg["season"] = pd.Categorical(
+    seasonal_avg["season"],
+    categories=season_order,
+    ordered=True
+)
 seasonal_avg = seasonal_avg.sort_values("season")
 
 season_temp_fig = px.bar(
     seasonal_avg,
     x="season",
     y="mean_temp_c",
-    title=f"Average Temperature by Season — {station_name}",
+    color="season",
+    title=f"Average Temperature by Season • {station_name}",
+    labels={
+        "season": "Season",
+        "mean_temp_c": "Average temperature (°C)"
+    },
+    color_discrete_map=season_colors
 )
+
+season_temp_fig.update_layout(showlegend=False)
 
 st.plotly_chart(temp_fig, use_container_width=True)
 st.plotly_chart(precip_fig, use_container_width=True)
 st.plotly_chart(season_temp_fig, use_container_width=True)
 
-with st.expander("Show raw data"):
-    st.dataframe(df, use_container_width=True)
+# with st.expander("Show raw data"):
+#    st.dataframe(df, use_container_width=True)
+
+# Run with: streamlit run dashboards/app.py
