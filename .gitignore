@@ -31,3 +31,6 @@ data/curated/*
 
 # Logs
 *.log
+
+# Database dumps
+seasonal_japan_dump.sql
