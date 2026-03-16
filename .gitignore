@@ -2,6 +2,7 @@
 .venv/
 .env
 streamlit_secrets.toml
+.vscode/
 
 # Python
 __pycache__/
