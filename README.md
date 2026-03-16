@@ -2,13 +2,37 @@
 *A data engineering & analytics project exploring seasonal patterns in Japan.*
 
 
-This project builds a **data pipeline and analytical data warehouse** to study long-term climate patterns and seasonal phenomena such as:
+## ✨ Live Dashboard
+▶ [Access dashboard here](https://lisa-nougaret-seasonal-japan-dashboardsapp-8n9yn9.streamlit.app/)
+
+Explore long-term monthly climate patterns across Japanese weather stations through an interactive dashboard.
+
+## 📖 Project Overview
+
+This project builds an **end-to-end data pipeline and analytical data warehouse** to study long-term climate patterns and seasonal phenomena such as:
 - 🌸 Cherry blossom bloom timing
 - 🍁 Autumn foliage timing
 - 🌧 Temperature & precipitation trends
 - ❄️ Seasonality and climate anomalies
 
-The goal is to transform raw climate datasets into a **structured analytics model** that can power dashboards and exploratory analysis.
+## ☁️ Architecture
+```text
+Markdown README (JMA Climate Data)
+        ↓
+Python ingestion pipeline
+        ↓
+PostgreSQL (local Docker database)
+        ↓
+SQL transformations
+(staging → marts)
+        ↓
+Analytics warehouse
+(star schema)
+        ↓
+Neon cloud database
+        ↓
+Streamlit dashboard
+```
 
 ## 🛠️ Tech Stack
 | Layer | Tools |
@@ -16,37 +40,39 @@ The goal is to transform raw climate datasets into a **structured analytics mode
 | Data ingestion    | Python     |
 | Data transformation     | SQL     |
 | Data warehouse    | PostgreSQL     | 
+| Cloud database    | Neon     | 
 | Data modeling    | Star schema     | 
-| Visualization    | Plotly     | 
+| Visualization    | Streamlit & Plotly     |
+| Environment    | Docker     |  
 | Version control   | Git     | 
 
 ## ⭐ Data Model
-The warehouse uses a star schema optimized for analytics.
+The warehouse uses a star schema optimized for analytics — fact_monthly climate, dim_station, and dim_date.
 
 ## 📂 Repository Structure
 ```text
 seasonal-japan/
 │
-├─ dashboards/        # visualizations
+├─ dashboards/        # Streamlit dashboard
 ├─ docs/              # diagrams & documentation
-├─ notebooks/         # exploration
+├─ notebooks/         # exploratory analysis
 │
 ├─ data/
-│   ├─ raw/
-│   ├─ interim/
-│   └─ curated/
+│   ├─ raw/           # source datasets
+│   ├─ interim/       # intermediate datasets
+│   └─ curated/       # cleaned outputs
 │
 ├─ sql/
-│   ├─ staging/       # staging models
-│   ├─ marts/         # fact & dimension tables
+│   ├─ staging/       # staging transformations
+│   ├─ marts/         # fact & dimension models
 │   └─ checks/        # data quality tests
 │
 ├─ src/
-│   ├─ ingestion/     # data extraction
+│   ├─ ingestion/     # data extraction scripts
 │   ├─ cleaning/      # data preparation
 │   ├─ features/      # feature engineering
 │   ├─ pipelines/     # pipeline orchestration
-│   └─ viz/           # plotting utilities
+│   └─ viz/           # dashboard queries
 │
 ├─ tests/
 │
@@ -56,4 +82,4 @@ seasonal-japan/
 ```
 
 ## ✨ Project Status
-Work in progress.
+Work in progress — planned improvements include incorporating sakura bloom & foliage datasets, automated pipeline scheduling, and predictive analytics.
