@@ -2,7 +2,6 @@ import pandas as pd
 from sqlalchemy import text
 from src.db.db import get_engine
 
-
 def get_station_list() -> pd.DataFrame:
     query = """
     SELECT
@@ -13,7 +12,6 @@ def get_station_list() -> pd.DataFrame:
     """
     engine = get_engine()
     return pd.read_sql(query, engine)
-
 
 def get_climate_timeseries(station_code: str) -> pd.DataFrame:
     query = text("""
@@ -37,7 +35,6 @@ def get_climate_timeseries(station_code: str) -> pd.DataFrame:
     """)
     engine = get_engine()
     return pd.read_sql(query, engine, params={"station_code": station_code})
-
 
 def get_climate_kpis(station_code: str) -> pd.DataFrame:
     query = text("""
