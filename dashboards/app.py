@@ -56,6 +56,14 @@ selected_station_code = station_label_map[selected_name]
 df = get_climate_timeseries(selected_station_code)
 kpi_df = get_climate_kpis(selected_station_code)
 
+# Aggregate to yearly level
+df["date_key"] = pd.to_datetime(df["date_key"])
+df["year"] = df["date_key"].dt.year
+yearly_df = (
+    df.groupby("year", as_index=False)
+    .agg({"mean_temp_c": "mean", "precipitation_mm": "sum"})
+)
+
 # Handle case where no data is found for the station
 if df.empty:
     st.warning("No data found for this station.")
@@ -78,27 +86,27 @@ col3.metric("Average precipitation (mm)", kpi_df.loc[0, "avg_precipitation_mm"])
 col4.metric("Minimum temperature (°C)", kpi_df.loc[0, "min_temp_c"])
 col5.metric("Maximum temperature (°C)", kpi_df.loc[0, "max_temp_c"])
 
-# Monthly temperature over time
+# Yearly temperature over time
 temp_fig = px.line(
-    df,
-    x="date_key",
+    yearly_df,
+    x="year",
     y="mean_temp_c",
-    title=f"🌡️ Monthly Temperature • {station_name}",
+    title=f"🌡️ Yearly Temperature • {station_name}",
     labels={
-        "date_key": "Date",
+        "year": "Year",
         "mean_temp_c": "Average temperature (°C)"
     }
 )
 temp_fig = style_fig(temp_fig)
 
-# Monthly precipitation over time
+# Yearly precipitation over time
 precip_fig = px.line(
-    df,
-    x="date_key",
+    yearly_df,
+    x="year",
     y="precipitation_mm",
-    title=f"🌧️ Monthly Precipitation • {station_name}",
+    title=f"🌧️ Yearly Precipitation • {station_name}",
     labels={
-        "date_key": "Date",
+        "year": "Year",
         "precipitation_mm": "Precipitation (mm)"
     }
 )
