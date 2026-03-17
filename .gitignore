@@ -1,7 +1,7 @@
 # Environment / secrets / local configuration
 .venv/
 .env
-streamlit_secrets.toml
+.streamlit/secrets.toml
 .vscode/
 
 # Python
