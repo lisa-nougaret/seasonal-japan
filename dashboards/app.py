@@ -29,8 +29,8 @@ def style_fig(fig):
         font=dict(family="Helvetica, Arial, sans-serif", size=12, color="#5B4D53")
     )
     fig.update_xaxes(showgrid=False)
-    fig.update_yaxes(gridcolor="#C4BDA4FF")
-    fig.update_traces(line=dict(color="#E8AFCF", width=2))
+    fig.update_yaxes(showgrid=False)
+    fig.update_traces(line=dict(color="#E8AFCF", width=2), selector=dict(type="scatter"))
     return fig
 
 # App title & description
@@ -153,13 +153,13 @@ season_temp_fig.update_layout(showlegend=False)
 season_temp_fig = style_fig(season_temp_fig)
 
 # Display charts
-st.plotly_chart(temp_fig, use_container_width=True)
-st.plotly_chart(precip_fig, use_container_width=True)
-st.plotly_chart(season_temp_fig, use_container_width=True)
+st.plotly_chart(temp_fig, width='stretch')
+st.plotly_chart(precip_fig, width='stretch')
+st.plotly_chart(season_temp_fig, width='stretch')
 
 # Optional: raw data table
 # with st.expander("Show raw data"):
-#    st.dataframe(df, use_container_width=True)
+#    st.dataframe(df, width='stretch')
 
 # Source footer
 st.markdown("---")
