@@ -38,9 +38,108 @@ def fetch_text(url: str) -> str:
     response.encoding = response.apparent_encoding or "utf-8" # Set the correct encoding for the response
     return response.text
 
-# Function to parse JMA CSV data
+# Function to parse JMA CSV data and rebuild the actual header row
 def parse_jma_csv(csv_text: str) -> pd.DataFrame:
-    df = pd.read_csv(StringIO(csv_text)) # Read the CSV text into a DataFrame without assuming any header row
+    raw_df = pd.read_csv(StringIO(csv_text), header=None)
+
+    # The first row is a title row
+    # The second row contains the actual header, but there are repeated "rm" columns we need to disambiguate by prefixing them with the year from the most recent year column
+    if len(raw_df) < 2:
+        raise ValueError("JMA CSV does not contain enough rows to build a header.")
+
+    header_row = raw_df.iloc[1].tolist()
+
+    rebuilt_header = []
+    previous_label = None
+
+    # Function to normalize header values by stripping whitespace, converting numeric year cells to strings, and handling "rm" columns
+    def normalize_header_value(value) -> str:
+        if pd.isna(value):
+            return ""
+
+        # Convert numeric year cells such as 2026.0 into "2026"
+        if isinstance(value, (int, float)) and not pd.isna(value):
+            if float(value).is_integer():
+                return str(int(value))
+            return str(value).strip()
+
+        value_str = str(value).strip()
+
+        # Convert text values such as "2026.0" into "2026"
+        if re.fullmatch(r"(19|20)\d{2}\.0", value_str):
+            return value_str[:-2]
+
+        return value_str
+
+    # Rebuild repeated "rm" columns into year-specific names such as "2026rm"
+    for raw_value in header_row:
+        value = normalize_header_value(raw_value)
+
+        if value == "rm":
+            if previous_label is None or previous_label == "":
+                rebuilt_header.append("rm")
+            else: 
+                rebuilt_header.append(f"{previous_label}rm")
+        else:
+            rebuilt_header.append(value)
+            previous_label = value
+
+    # Ensuire that all columns names are unique
+    seen = {}
+    unique_header = []
+
+    for col in rebuilt_header:
+        if col in seen:
+            seen[col] += 1
+            unique_header.append(f"{col}_{seen[col]}")
+        else:
+            seen[col] = 0
+            unique_header.append(col)
+
+    # Build the final DataFrame using the reconstructed header
+    df = raw_df.iloc[2:].copy()
+    df.columns = unique_header
+    df = df.reset_index(drop=True)
+
+    # Drop columns that are completely empty
+    df = df.dropna(axis=1, how="all")
+
+    # Normalize empty strings
+    df = df.replace(r"^\s*$", pd.NA, regex=True)
+
+    return df    # Read the CSV without assuming that the first row is the header
+    raw_df = pd.read_csv(StringIO(csv_text), header=None)
+
+    # The actual header is stored in the first data row
+    header_row = [str(value).strip() if not pd.isna(value) else "" for value in raw_df.iloc[0].tolist()]
+
+    rebuilt_header = []
+    current_year = None
+
+    # Rebuild repeated "rm" columns into year-specific names such as "2026rm"
+    for value in header_row:
+        if re.fullmatch(r"(19|20)\d{2}", value):
+            current_year = value
+            rebuilt_header.append(value)
+        elif value == "rm":
+            if current_year is not None:
+                rebuilt_header.append(f"{current_year}rm")
+            else:
+                rebuilt_header.append("rm")
+        else:
+            rebuilt_header.append(value)
+
+    # Build the final DataFrame using the reconstructed header
+    df = raw_df.iloc[1:].copy()
+    df.columns = rebuilt_header
+    df = df.reset_index(drop=True)
+
+    # Drop columns that are completely empty
+    df = df.dropna(axis=1, how="all")
+
+    # Normalize empty strings
+    df = df.replace(r"^\s*$", pd.NA, regex=True)
+
     return df
 
 # Function to clean text values by stripping whitespace and converting certain values to None
@@ -62,20 +161,34 @@ def extract_year_from_column(col_name: str) -> Optional[int]:
 # Function to identify year value columns
 def extract_year_value_columns(df: pd.DataFrame) -> list[str]:
     cols = []
+    current_year = pd.Timestamp.utcnow().year
+
     for col in df.columns:
         col_s = str(col).strip()
+
+        if col_s.lower().endswith("rm"):
+            continue
+
         if re.fullmatch(r"(19|20)\d{2}", col_s):
-            cols.append(col)
+            year = int(col_s)
+            if 1953 <= year <= current_year:
+                cols.append(col)
+
     return cols
 
-# Function to identify year attribute columns such as "1953rm", "1954rm", etc.
+# Function to identify year attribute columns such as "2026rm", etc.
 def extract_year_rm_columns(df: pd.DataFrame) -> dict[int, str]:
     rm_cols = {}
+    current_year = pd.Timestamp.utcnow().year
+
     for col in df.columns:
-        col_s = str(col).strip().lower().replace(" ", "")
+        col_s = str(col).strip().lower()
         match = re.fullmatch(r"((19|20)\d{2})rm", col_s)
         if match:
-            rm_cols[int(match.group(1))] = col
+            year = int(match.group(1))
+            if 1953 <= year <= current_year:
+                rm_cols[year] = col
+
     return rm_cols
 
 # Function to normalize raw event date values by keeping them as text in the raw layer and converting certain values to None (e.g., '3/26' -> '3/26', 'Mar 26' -> 'Mar 26', '-' -> None)
@@ -84,7 +197,21 @@ def normalize_event_date_raw(value) -> Optional[str]:
     if value is None:
         return None
     
+    if isinstance(value, (int, float)) and not pd.isna(value):
+        if float(value).is_integer():
+            value = int(value)
+        else:
+            value = str(value)
+
     s = str(value).strip()
+
+    # Normalize values such as "521.0" -> "521"
+    if re.fullmatch(r"\d+\.0", s):
+        s = s[:-2]
+
+    # Ignore zero-like placeholders
+    if s in {"0", "0.0"}:
+        return None
 
     # Convert JMA MMDD-style numeric values such as 326 -> 03-26 or 402 -> 04-02
     if re.fullmatch(r"\d{3,4}", s):
@@ -164,6 +291,16 @@ def reshape_jma_ruinenchi_to_long(df: pd.DataFrame) -> pd.DataFrame:
             rm_frames.append(rm_df)
 
         rm_long_df = pd.concat(rm_frames, ignore_index=True)
+
+        if "location_name_raw" in rm_long_df.columns:
+            rm_long_df["location_name_raw"] = rm_long_df["location_name_raw"].apply(clean_text)
+
+        if "station_code_raw" in rm_long_df.columns:
+            rm_long_df["station_code_raw"] = rm_long_df["station_code_raw"].apply(clean_text)
+
+        if "rm_raw" in rm_long_df.columns:
+            rm_long_df["rm_raw"] = rm_long_df["rm_raw"].apply(clean_text)
+
         if "rm_raw" in rm_long_df.columns:
             rm_long_df["rm_raw"] = rm_long_df["rm_raw"].apply(clean_text)
 
@@ -177,11 +314,9 @@ def reshape_jma_ruinenchi_to_long(df: pd.DataFrame) -> pd.DataFrame:
 def build_raw_dataframe(csv_text: str) -> pd.DataFrame:
     table = parse_jma_csv(csv_text)
 
-    # Debug: print the first few rows and columns of the extracted table to verify that it was parsed correctly before reshaping
-    # print(table.head())
-    # print(table.columns.tolist())
-
     long_df = reshape_jma_ruinenchi_to_long(table)
+
+    long_df = long_df.dropna(subset=["event_date_raw"])
 
     raw_ingested_at = pd.Timestamp.utcnow()
     page_notes = "JMA ruinenchi CSV"
@@ -225,7 +360,6 @@ def build_raw_dataframe(csv_text: str) -> pd.DataFrame:
     long_df = long_df[ordered_columns]
 
     return long_df
-
 
 # Below are functions related to database operations, such as creating the raw table if it does not exist, deleting existing rows for this source before reload, and loading the new data into the raw table.
 
@@ -275,7 +409,6 @@ def delete_existing_sakura_rows_for_source() -> None:
             },
         )
 
-
 # Function to load the prepared DataFrame into the raw table in the database using SQLAlchemy's to_sql method
 def load_to_raw(df: pd.DataFrame) -> None:
     engine = get_engine()
@@ -286,8 +419,8 @@ def load_to_raw(df: pd.DataFrame) -> None:
         if_exists="append",
         index=False,
         method="multi",
+        chunksize=1000,
     )
-
 
 # Function to orchestrate the entire data ingestion process for JMA sakura bloom data, including fetching the CSV, building the raw DataFrame, ensuring the raw table exists, deleting existing rows for this source, and loading the new data into the raw table.
 def main() -> None:
