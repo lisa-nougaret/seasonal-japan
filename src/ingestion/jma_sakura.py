@@ -443,7 +443,9 @@ def main() -> None:
     load_to_raw(df_raw)
 
     print("Done.")
-
+    print(df_raw.head())
+    print(df_raw.columns)
+    print(df_raw.shape)
 
 if __name__ == "__main__":
     main()
