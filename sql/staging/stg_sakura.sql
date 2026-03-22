@@ -5,16 +5,16 @@ SELECT
     station_code_raw AS location_code,
     TRIM(location_name_raw) AS location_name,
     year,
-    -- Convert raw date into real date
     CASE
         WHEN event_date_raw IS NULL THEN NULL
-        WHEN event_date_raw ~ '^\d{1,2}/\d{1,2}$' THEN
-            TO_DATE(year || '/' || event_date_raw, 'YYYY/MM/DD')
+        WHEN TRIM(event_date_raw) ~ '^\d{1,2}-\d{1,2}$' THEN
+            TO_DATE(year::text || '-' || TRIM(event_date_raw), 'YYYY-MM-DD')
         ELSE NULL
     END AS event_date,
     CASE
-        WHEN event_date_raw ~ '^\d{1,2}/\d{1,2}$' THEN
-            EXTRACT(DOY FROM TO_DATE(year || '/' || event_date_raw, 'YYYY/MM/DD'))
+        WHEN event_date_raw IS NULL THEN NULL
+        WHEN TRIM(event_date_raw) ~ '^\d{1,2}-\d{1,2}$' THEN
+            EXTRACT(DOY FROM TO_DATE(year::text || '-' || TRIM(event_date_raw), 'YYYY-MM-DD'))::INT
         ELSE NULL
     END AS day_of_year,
     event_type,
