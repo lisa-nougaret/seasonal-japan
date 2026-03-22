@@ -69,3 +69,14 @@ GROUP BY location_name, year
 HAVING COUNT(*) > 1
 ORDER BY row_count DESC, location_name, year
 LIMIT 20;
+
+-- Duplicate rows by location code, year, and event type
+SELECT
+    location_code,
+    year,
+    event_type,
+    COUNT(*) AS records
+FROM staging.stg_jma_sakura
+GROUP BY location_code, year, event_type
+HAVING COUNT(*) > 1
+ORDER BY records DESC;
