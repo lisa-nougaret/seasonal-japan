@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS analytics.fact_sakura_events;
+CREATE TABLE analytics.fact_sakura_events AS
 SELECT
     location_code,
     location_name,
