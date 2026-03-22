@@ -1,4 +1,5 @@
 SELECT
+    location_code,
     location_name,
     event_date,
     year,
