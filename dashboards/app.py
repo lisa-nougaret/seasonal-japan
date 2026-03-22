@@ -120,10 +120,10 @@ seasonal_avg = (
 
 # Map season names to emojis
 season_map = {
-    "spring": "🌷",
-    "summer": "☀️",
-    "fall": "🍂",
-    "winter": "🌨️"
+    "Spring": "🌷",
+    "Summer": "☀️",
+    "Autumn": "🍂",
+    "Winter": "🌨️"
 }
 seasonal_avg["season"] = seasonal_avg["season"].map(season_map)
 

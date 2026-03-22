@@ -8,10 +8,10 @@ SELECT DISTINCT month_start_date AS date_key,
         FROM month_start_date
     ) AS quarter,
     CASE
-        WHEN month IN (12, 1, 2) THEN 'winter'
-        WHEN month IN (3, 4, 5) THEN 'spring'
-        WHEN month IN (6, 7, 8) THEN 'summer'
-        WHEN month IN (9, 10, 11) THEN 'fall'
+        WHEN month IN (12, 1, 2) THEN 'Winter'
+        WHEN month IN (3, 4, 5) THEN 'Spring'
+        WHEN month IN (6, 7, 8) THEN 'Summer'
+        WHEN month IN (9, 10, 11) THEN 'Autumn'
     END AS season
 FROM staging.stg_jma_monthly_climate
 ORDER BY date_key;
