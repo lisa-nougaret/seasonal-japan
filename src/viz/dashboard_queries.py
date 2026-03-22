@@ -18,20 +18,17 @@ def get_climate_timeseries(station_code: str) -> pd.DataFrame:
     SELECT
         f.station_code,
         s.station_name,
-        d.date_key,
-        d.year,
-        d.month,
-        d.quarter,
-        d.season,
+        m.date_key,
         f.mean_temp_c,
-        f.precipitation_mm
+        f.precipitation_mm,
+        m.season
     FROM analytics.fact_monthly_climate f
     LEFT JOIN analytics.dim_station s
         ON f.station_code = s.station_code
-    LEFT JOIN analytics.dim_date d
-        ON f.date_key = d.date_key
+    LEFT JOIN analytics.dim_month m
+        ON f.date_key = m.date_key
     WHERE f.station_code = :station_code
-    ORDER BY d.date_key;
+    ORDER BY m.date_key;
     """)
     engine = get_engine()
     return pd.read_sql(query, engine, params={"station_code": station_code})

@@ -1,4 +1,4 @@
-DROP IS TABLE IF EXISTS analytics.dim_date;
+DROP TABLE IF EXISTS analytics.dim_date;
 CREATE TABLE analytics.dim_date AS
 SELECT DISTINCT
     event_date AS date_key,
