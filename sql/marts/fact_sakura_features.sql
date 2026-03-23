@@ -12,82 +12,96 @@ WITH sakura AS (
         source_name
     FROM analytics.fact_sakura_events
     WHERE date_key IS NOT NULL
+        AND day_of_year IS NOT NULL
 ),
-climate_features AS (
+climate_joined AS (
     SELECT
         s.location_code,
         s.year,
+        s.event_type,
+        s.event_date,
+        s.day_of_year,
+        s.data_status,
+        s.source_name,
+        c.station_code,
+        c.date_key,
+        c.mean_temp_c,
+        c.precipitation_mm
+    FROM sakura s
+    LEFT JOIN analytics.fact_monthly_climate c
+        ON RIGHT(c.station_code::text, 3) = s.location_code
+),
+climate_features AS (
+    SELECT
+        location_code,
+        year,
         AVG(
             CASE
                 WHEN 
-                    EXTRACT(MONTH FROM c.date_key) IN (9, 10, 11)
-                    AND EXTRACT(YEAR FROM c.date_key) = s.year - 1
-                THEN c.mean_temp_c
+                    EXTRACT(MONTH FROM date_key) IN (9, 10, 11)
+                    AND EXTRACT(YEAR FROM date_key) = year - 1
+                THEN mean_temp_c
             END
         ) AS last_autumn_mean_temp,
         AVG(
             CASE
                 WHEN (
-                    EXTRACT(MONTH FROM c.date_key) = 12
-                    AND EXTRACT(YEAR FROM c.date_key) = s.year - 1
+                    EXTRACT(MONTH FROM date_key) = 12
+                    AND EXTRACT(YEAR FROM date_key) = year - 1
                 )
                 OR (
-                    EXTRACT(MONTH FROM c.date_key) IN (1, 2)
-                    AND EXTRACT(YEAR FROM c.date_key) = s.year
+                    EXTRACT(MONTH FROM date_key) IN (1, 2)
+                    AND EXTRACT(YEAR FROM date_key) = year
                 )
-                THEN c.mean_temp_c
+                THEN mean_temp_c
             END
         ) AS winter_mean_temp,
         AVG(
             CASE
                 WHEN
-                    EXTRACT(MONTH FROM c.date_key) = 1
-                    AND EXTRACT(YEAR FROM c.date_key) = s.YEAR
-                THEN c.mean_temp_c
+                    EXTRACT(MONTH FROM date_key) = 1
+                    AND EXTRACT(YEAR FROM date_key) = year
+                THEN mean_temp_c
             END
         ) AS january_mean_temp,
         AVG(
             CASE
                 WHEN
-                    EXTRACT(MONTH FROM c.date_key) = 2
-                    AND EXTRACT(YEAR FROM c.date_key) = s.YEAR
-                THEN c.mean_temp_c
+                    EXTRACT(MONTH FROM date_key) = 2
+                    AND EXTRACT(YEAR FROM date_key) = year
+                THEN mean_temp_c
             END
         ) AS february_mean_temp,
         AVG(
             CASE
                 WHEN
-                    EXTRACT(MONTH FROM c.date_key) = 3
-                    AND EXTRACT(YEAR FROM c.date_key) = s.YEAR
-                THEN c.mean_temp_c
+                    EXTRACT(MONTH FROM date_key) = 3
+                    AND EXTRACT(YEAR FROM date_key) = year
+                THEN mean_temp_c
             END
         ) AS march_mean_temp,
         SUM(
             CASE
-                WHEN EXTRACT(MONTH FROM c.date_key) IN (1, 2, 3)
-                 AND EXTRACT(YEAR FROM c.date_key) = s.year
-                THEN c.mean_temp_c
+                WHEN EXTRACT(MONTH FROM date_key) IN (1, 2, 3)
+                 AND EXTRACT(YEAR FROM date_key) = year
+                THEN mean_temp_c
             END
         ) AS january_march_cumulative_temp,
         SUM(
             CASE
                 WHEN (
-                    EXTRACT(MONTH FROM c.date_key) = 12
-                    AND EXTRACT(YEAR FROM c.date_key) = s.year - 1
+                    EXTRACT(MONTH FROM date_key) = 12
+                    AND EXTRACT(YEAR FROM date_key) = year - 1
                 )
                 OR (
-                    EXTRACT(MONTH FROM c.date_key) IN (1, 2)
-                    AND EXTRACT(YEAR FROM c.date_key) = s.year
+                    EXTRACT(MONTH FROM date_key) IN (1, 2)
+                    AND EXTRACT(YEAR FROM date_key) = year
                 )
-                THEN c.precipitation_mm
+                THEN precipitation_mm
             END
         ) AS winter_precipitation_mm
-    FROM sakura s
-    LEFT JOIN analytics.fact_monthly_climate c
-        ON s.location_code = RIGHT(c.station_code::text, 3)
-    GROUP BY
-        s.location_code,
-        s.year
+    FROM climate_joined
+    GROUP BY location_code, year
 )
 
 SELECT
@@ -108,4 +122,10 @@ SELECT
 FROM sakura s
 LEFT JOIN climate_features cf
     ON s.location_code = cf.location_code
-   AND s.year = cf.year;
+   AND s.year = cf.year
+WHERE
+    cf.last_autumn_mean_temp IS NOT NULL
+    AND cf.winter_mean_temp IS NOT NULL
+    AND cf.january_mean_temp IS NOT NULL
+    AND cf.february_mean_temp IS NOT NULL
+    AND cf.march_mean_temp IS NOT NULL;
