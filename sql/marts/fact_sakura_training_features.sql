@@ -1,6 +1,6 @@
-DROP TABLE IF EXISTS analytics.fact_sakura_features;
+DROP TABLE IF EXISTS analytics.fact_sakura_training_features;
 
-CREATE TABLE analytics.fact_sakura_features AS
+CREATE TABLE analytics.fact_sakura_training_features AS
 WITH sakura AS (
     SELECT
         LPAD(location_code::text, 3, '0') AS location_code,
