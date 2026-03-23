@@ -38,10 +38,10 @@ LEFT JOIN analytics.dim_location d
     ON f.location_code = d.location_code
 WHERE d.location_code IS NULL;
 
--- Same for date keys that do not exist in the dim_date_sakura table
+-- Same for date keys that do not exist in the dim_date table
 
 SELECT COUNT(*) AS unmatched_dates
 FROM analytics.fact_sakura_events f
-LEFT JOIN analytics.dim_date_sakura d
+LEFT JOIN analytics.dim_date d
     ON f.date_key = d.date_key
 WHERE d.date_key IS NULL;
