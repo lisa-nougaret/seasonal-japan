@@ -47,3 +47,26 @@ def get_climate_kpis(station_code: str) -> pd.DataFrame:
     """)
     engine = get_engine()
     return pd.read_sql(query, engine, params={"station_code": station_code})
+
+def get_bloom_forecast(location_code: str, year: int = 2026) -> pd.DataFrame:
+    query = text("""
+    SELECT
+        location_code,
+        forecast_year,
+        predicted_day_of_year,
+        predicted_event_date,
+        model_name,
+        model_version,
+        prediction_status
+    FROM analytics.fact_sakura_forecast
+    WHERE location_code = :location_code
+      AND forecast_year = :year
+      AND event_type = 'sakura_bloom'
+    LIMIT 1;
+    """)
+    engine = get_engine()
+    return pd.read_sql(
+        query,
+        engine,
+        params={"location_code": location_code, "year": year}
+    )
