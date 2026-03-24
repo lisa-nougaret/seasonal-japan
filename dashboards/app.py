@@ -92,8 +92,8 @@ def style_fig(fig):
         margin=dict(l=40, r=40, t=60, b=40),
 
         # Background
-        plot_bgcolor="white",
-        paper_bgcolor="white",
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
 
         # Global font (plus léger visuellement)
         font=dict(
