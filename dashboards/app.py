@@ -19,6 +19,34 @@ from src.viz.dashboard_queries import (
 # Page configuration
 st.set_page_config(page_title="Seasonal Japan", page_icon="🌸", layout="wide")
 
+st.markdown("""
+<style>
+html, body, [class*="css"]  {
+    font-weight: 300 !important;
+    letter-spacing: 0.2px
+    color: #5B4D53;
+}
+
+/* Headings */
+h1, h2, h3 {
+    font-weight: 300 !important;
+}
+
+/* Labels (selectboxes etc.) */
+label {
+    font-weight: 300;
+}
+
+/* Metrics (numbers + labels) */
+[data-testid="stMetricValue"] {
+    font-weight: 300;
+}
+[data-testid="stMetricLabel"] {
+    font-weight: 300;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # Function for consistent chart styling
 def style_fig(fig):
     fig.update_layout(
@@ -26,27 +54,48 @@ def style_fig(fig):
         hovermode="x unified",
         title_x=0.05,
         margin=dict(l=40, r=40, t=60, b=40),
+
+        # Background
         plot_bgcolor="white",
         paper_bgcolor="white",
+
+        # Global font (plus léger visuellement)
         font=dict(
-            family="Helvetica, Arial, sans-serif",
+            family="Helvetica Neue, Helvetica, Arial, sans-serif",
             size=12,
+            color="#5B4D53"
+        ),
+
+        # Title styling (important car indépendant)
+        title_font=dict(
+            size=16,
             color="#5B4D53"
         )
     )
-    fig.update_xaxes(showgrid=False)
-    fig.update_yaxes(showgrid=False)
+
+    # Axes (minimal clean look)
+    fig.update_xaxes(
+        showgrid=False,
+        zeroline=False
+    )
+    fig.update_yaxes(
+        showgrid=False,
+        zeroline=False
+    )
+
+    # Line style
     fig.update_traces(
         line=dict(color="#E8AFCF", width=2),
         selector=dict(type="scatter")
     )
+
     return fig
 
 # App title & description
 st.markdown("""
 <div class="hero-block">
-    <h1 style="font-weight: 300;">When Will Sakura Bloom This Year?</h1>
-    <p style="font-weight: 300;">
+    <h1>When Will Sakura Bloom This Year?</h1>
+    <p>
         Explore historical temperature patterns and forecasted sakura first bloom dates, across Japan.
     </p>
 </div>
@@ -73,7 +122,7 @@ with filter_col2:
     selected_n_years = st.selectbox(
         "Display the last ... years ▼",
         options=[10, 20, 30, 50, 100],
-        index=2
+        index=0 # set to shortest period by default
     )
 
 selected_station_code = station_label_map[selected_name]
