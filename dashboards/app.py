@@ -9,6 +9,8 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
+import base64
+
 from src.viz.dashboard_queries import (
     get_station_list,
     get_climate_timeseries,
@@ -16,8 +18,42 @@ from src.viz.dashboard_queries import (
     get_bloom_forecast,
 )
 
+import base64
+
+def add_bg_from_local(image_file):
+    with open(image_file, "rb") as image:
+        encoded = base64.b64encode(image.read()).decode()
+
+    st.markdown(
+        f"""
+        <style>
+        .stApp {{
+            background-image: url("data:image/png;base64,{encoded}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }}
+
+        /* Add white overlay for readability */
+        .stApp::before {{
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(247, 244, 242, 0.85);
+            z-index: -1;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
 # Page configuration
 st.set_page_config(page_title="Seasonal Japan", page_icon="🌸", layout="wide")
+add_bg_from_local("dashboards/assets/sakura_blurred.png")
 
 st.markdown("""
 <style>
