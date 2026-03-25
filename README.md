@@ -1,35 +1,35 @@
-# 🌸 Seasonal Japan
-*A data engineering & analytics project exploring seasonal patterns in Japan.*
+# 🌸 When Will Sakura Bloom?
+**A data engineering & analytics project to forecast cherry blossom bloom timing, in Japan.*
 
 
 ## ✨ Live Dashboard
 ▶ [Access dashboard here](https://lisa-nougaret-seasonal-japan-dashboardsapp-8n9yn9.streamlit.app/)
 
-Explore long-term monthly climate patterns across Japanese weather stations through an interactive dashboard.
+Explore historical climate patterns and predicted sakura bloom dates across Japanese weather stations.
 
 ## 📖 Project Overview
 
-This project builds an **end-to-end data pipeline and analytical data warehouse** to study long-term climate patterns and seasonal phenomena such as:
-- 🌸 Cherry blossom bloom timing
-- 🍁 Autumn foliage timing
-- 🌧 Temperature & precipitation trends
-- ❄️ Seasonality and climate anomalies
+Cherry blossom (sakura) bloom is highly sensitive to temperature patterns — especially from the previous autumn and winter.
+
+This project builds an **end-to-end data pipeline and analytical data warehouse** to:
+- 🌸 Analyze historical sakura bloom dates
+- 🌧 Link bloom timing to climate & precipitation variables
+- 📈 Forecast future bloom dates using engineered features
 
 ## ☁️ Architecture
 ```text
-Markdown README (JMA Climate Data)
+JMA Data Sources (climate & sakura)
         ↓
 Python ingestion pipeline
         ↓
-PostgreSQL (local Docker database)
+PostgreSQL (Docker / Neon)
         ↓
 SQL transformations
-(staging → marts)
+(raw → staging → marts)
         ↓
-Analytics warehouse
-(star schema)
+Feature engineering
         ↓
-Neon cloud database
+Prediction model (bloom date)
         ↓
 Streamlit dashboard
 ```
@@ -39,15 +39,16 @@ Streamlit dashboard
 |---------|----------|
 | Data ingestion    | Python     |
 | Data transformation     | SQL     |
-| Data warehouse    | PostgreSQL     | 
+| Data warehouse    | PostgreSQL (Docker / Neon)     | 
 | Cloud database    | Neon     | 
-| Data modeling    | Star schema     | 
-| Visualization    | Streamlit & Plotly     |
+| Data modelling    | Star schema     | 
+| Feature Engineering    | Python     | 
+| Visualization    | Streamlit / Plotly     |
 | Environment    | Docker     |  
 | Version control   | Git     | 
 
 ## ⭐ Data Model
-The warehouse uses a star schema optimized for analytics — fact_monthly climate, dim_station, and dim_date.
+The warehouse uses a star schema optimized for analytics (in progress).
 
 ## 📂 Repository Structure
 ```text
@@ -82,4 +83,4 @@ seasonal-japan/
 ```
 
 ## ✨ Project Status
-Work in progress — planned improvements include incorporating sakura bloom & foliage datasets, automated pipeline scheduling, and predictive analytics.
+**Work in progress.** Current features include station-level and time period filtering, along with historical climate exporation.
