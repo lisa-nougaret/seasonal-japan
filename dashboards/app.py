@@ -30,7 +30,7 @@ def add_bg_from_local(image_file):
         .stApp {{
             background-image: url("data:image/png;base64,{encoded}");
             background-size: cover;
-            background-position: center;
+            background-position: left center;
             background-repeat: no-repeat;
             background-attachment: fixed;
         }}
@@ -51,9 +51,76 @@ def add_bg_from_local(image_file):
         unsafe_allow_html=True
     )
 
+def add_floating_petals(image_path: str):
+    with open(image_path, "rb") as f:
+        encoded = base64.b64encode(f.read()).decode()
+
+    st.markdown(
+        f"""
+        <style>
+        .petal-overlay {{
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 9999;
+            overflow: hidden;
+        }}
+
+        .petal {{
+            position: absolute;
+            width: 20px;
+            opacity: 1;
+            animation-name: fallDrift;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+        }}
+
+        .petal img {{
+            width: 100%;
+            display: block;
+            filter: blur(0px);
+        }}
+
+        .petal-1 {{ left: 8%; top: -10%; animation-duration: 18s; animation-delay: 0s; }}
+        .petal-2 {{ left: 22%; top: -15%; animation-duration: 22s; animation-delay: 4s; }}
+        .petal-3 {{ left: 48%; top: -12%; animation-duration: 20s; animation-delay: 2s; }}
+        .petal-4 {{ left: 67%; top: -18%; animation-duration: 24s; animation-delay: 7s; }}
+        .petal-5 {{ left: 82%; top: -14%; animation-duration: 19s; animation-delay: 1s; }}
+
+        @keyframes fallDrift {{
+            0% {{
+                transform: translateY(-10vh) translateX(0px) rotate(0deg);
+            }}
+            25% {{
+                transform: translateY(25vh) translateX(20px) rotate(35deg);
+            }}
+            50% {{
+                transform: translateY(50vh) translateX(-15px) rotate(85deg);
+            }}
+            75% {{
+                transform: translateY(75vh) translateX(18px) rotate(140deg);
+            }}
+            100% {{
+                transform: translateY(110vh) translateX(-10px) rotate(200deg);
+            }}
+        }}
+        </style>
+
+        <div class="petal-overlay">
+            <div class="petal petal-1"><img src="data:image/png;base64,{encoded}" /></div>
+            <div class="petal petal-2"><img src="data:image/png;base64,{encoded}" /></div>
+            <div class="petal petal-3"><img src="data:image/png;base64,{encoded}" /></div>
+            <div class="petal petal-4"><img src="data:image/png;base64,{encoded}" /></div>
+            <div class="petal petal-5"><img src="data:image/png;base64,{encoded}" /></div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
 # Page configuration
 st.set_page_config(page_title="Seasonal Japan", page_icon="🌸", layout="wide")
 add_bg_from_local("dashboards/assets/sakura_blurred.png")
+add_floating_petals("dashboards/assets/sakura_petal.png")
 
 st.markdown("""
 <style>
