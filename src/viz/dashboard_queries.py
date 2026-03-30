@@ -48,6 +48,66 @@ def get_climate_kpis(station_code: str) -> pd.DataFrame:
     engine = get_engine()
     return pd.read_sql(query, engine, params={"station_code": station_code})
 
+def get_bloom_history(location_code: str) -> pd.DataFrame:
+    query = text("""
+    SELECT
+        location_code,
+        year,
+        date_key,
+        day_of_year,
+        event_type,
+        data_status,
+        source_name
+    FROM analytics.fact_sakura_events
+    WHERE location_code = :location_code
+        AND event_type = 'sakura_bloom'
+    ORDER BY year;
+    """)
+    engine = get_engine()
+    return pd.read_sql(query, engine, params={"location_code": location_code})
+
+def get_bloom_temp_features(station_code: str, location_code: str) -> pd.DataFrame:
+    query = text("""
+    WITH bloom AS (
+        SELECT
+            location_code,
+            year,
+            date_key,
+            day_of_year
+        FROM analytics.fact_sakura_events
+        WHERE location_code = :location_code
+          AND event_type = 'sakura_bloom'
+    ),
+    late_winter_temp AS (
+        SELECT
+            f.station_code,
+            EXTRACT(YEAR FROM f.date_key)::int AS year,
+            ROUND(AVG(f.mean_temp_c)::numeric, 2) AS mean_temp_feb_mar
+        FROM analytics.fact_monthly_climate f
+        WHERE f.station_code = :station_code
+          AND EXTRACT(MONTH FROM f.date_key) IN (2, 3)
+        GROUP BY f.station_code, EXTRACT(YEAR FROM f.date_key)
+    )
+    SELECT
+        b.year,
+        b.date_key,
+        b.day_of_year,
+        t.mean_temp_feb_mar
+    FROM bloom b
+    LEFT JOIN late_winter_temp t
+        ON b.year = t.year
+    ORDER BY b.year;
+    """)
+    engine = get_engine()
+    return pd.read_sql(
+        query,
+        engine,
+        params={
+            "station_code": station_code,
+            "location_code": location_code
+        }
+    )
+
 def get_bloom_forecast(location_code: str, year: int = 2026) -> pd.DataFrame:
     query = text("""
     SELECT

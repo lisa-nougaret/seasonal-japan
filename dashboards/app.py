@@ -16,6 +16,8 @@ from src.viz.dashboard_queries import (
     get_climate_timeseries,
     get_climate_kpis,
     get_bloom_forecast,
+    get_bloom_history,
+    get_bloom_temp_features
 )
 
 import base64
@@ -35,16 +37,19 @@ def add_bg_from_local(image_file):
             background-attachment: fixed;
         }}
 
-        /* Add white overlay for readability */
+        /* Subtle overlay */
         .stApp::before {{
             content: "";
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(247, 244, 242, 0.85);
-            z-index: -1;
+            inset: 0;
+            background: rgba(247, 244, 242, 0.1);
+            z-index: 0;
+        }}
+
+        /* Keep content above overlay */
+        .stApp > div {{
+            position: relative;
+            z-index: 1;
         }}
         </style>
         """,
@@ -68,7 +73,7 @@ def add_floating_petals(image_path: str):
 
         .petal {{
             position: absolute;
-            width: 20px;
+            width: 25px;
             opacity: 1;
             animation-name: fallDrift;
             animation-timing-function: linear;
@@ -78,14 +83,12 @@ def add_floating_petals(image_path: str):
         .petal img {{
             width: 100%;
             display: block;
-            filter: blur(0px);
         }}
 
-        .petal-1 {{ left: 8%; top: -10%; animation-duration: 18s; animation-delay: 0s; }}
-        .petal-2 {{ left: 22%; top: -15%; animation-duration: 22s; animation-delay: 4s; }}
-        .petal-3 {{ left: 48%; top: -12%; animation-duration: 20s; animation-delay: 2s; }}
-        .petal-4 {{ left: 67%; top: -18%; animation-duration: 24s; animation-delay: 7s; }}
-        .petal-5 {{ left: 82%; top: -14%; animation-duration: 19s; animation-delay: 1s; }}
+        /* Bigger delays = fewer petals at once */
+        .petal-1 {{ left: 15%; top: -10%; animation-duration: 28s; animation-delay: 0s; }}
+        .petal-2 {{ left: 55%; top: -15%; animation-duration: 30s; animation-delay: 5; }}
+        .petal-3 {{ left: 80%; top: -12%; animation-duration: 32s; animation-delay: 10s; }}
 
         @keyframes fallDrift {{
             0% {{
@@ -110,8 +113,6 @@ def add_floating_petals(image_path: str):
             <div class="petal petal-1"><img src="data:image/png;base64,{encoded}" /></div>
             <div class="petal petal-2"><img src="data:image/png;base64,{encoded}" /></div>
             <div class="petal petal-3"><img src="data:image/png;base64,{encoded}" /></div>
-            <div class="petal petal-4"><img src="data:image/png;base64,{encoded}" /></div>
-            <div class="petal petal-5"><img src="data:image/png;base64,{encoded}" /></div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -126,7 +127,7 @@ st.markdown("""
 <style>
 html, body, [class*="css"]  {
     font-weight: 300 !important;
-    letter-spacing: 0.2px
+    letter-spacing: 0.2px;
     color: #5B4D53;
 }
 
@@ -186,12 +187,6 @@ def style_fig(fig):
         zeroline=False
     )
 
-    # Line style
-    fig.update_traces(
-        line=dict(color="#E8AFCF", width=2),
-        selector=dict(type="scatter")
-    )
-
     return fig
 
 # App title & description
@@ -231,6 +226,8 @@ with filter_col2:
 selected_station_code = station_label_map[selected_name]
 selected_location_code = str(int(selected_station_code) - 47000)
 
+bloom_history_df = get_bloom_history(selected_location_code)
+bloom_temp_df = get_bloom_temp_features(selected_station_code, selected_location_code)
 forecast_df = get_bloom_forecast(selected_location_code, year=2026)
 
 # Load data
@@ -246,16 +243,28 @@ if df.empty:
 df["date_key"] = pd.to_datetime(df["date_key"])
 df["year"] = df["date_key"].dt.year
 
-yearly_df = (
-    df.groupby("year", as_index=False)
-    .agg({"mean_temp_c": "mean"})
-)
+# Prepare bloom history
+if not bloom_history_df.empty:
+    bloom_history_df["date_key"] = pd.to_datetime(bloom_history_df["date_key"])
+    bloom_history_df["year"] = bloom_history_df["year"].astype(int)                                           
 
-# Filter to last n years
-max_year = yearly_df["year"].max()
+if not bloom_temp_df.empty:
+    bloom_temp_df["date_key"] = pd.to_datetime(bloom_temp_df["date_key"])
+    bloom_temp_df["year"] = bloom_temp_df["year"].astype(int)
+
+# Filter to last n years based on bloom history if available, else climate data
+if not bloom_history_df.empty:
+    max_year = bloom_history_df["year"].max()
+else:
+    max_year = df["year"].max()
+
 min_year_to_keep = max_year - selected_n_years + 1
 
-yearly_df = yearly_df[yearly_df["year"] >= min_year_to_keep]
+if not bloom_history_df.empty:
+    bloom_history_df = bloom_history_df[bloom_history_df["year"] >= min_year_to_keep]
+
+if not bloom_temp_df.empty:
+    bloom_temp_df = bloom_temp_df[bloom_temp_df["year"] >= min_year_to_keep]
 
 # Extract station metadata
 station_name = df["station_name"].dropna().iloc[0]
@@ -284,20 +293,79 @@ col1.metric("Forecasted bloom date", bloom_date)
 col2.metric("Average temperature (°C)", kpi_df.loc[0, "avg_temp_c"])
 col3.metric("Temperature range (°C)", f"{kpi_df.loc[0, 'min_temp_c']} to {kpi_df.loc[0, 'max_temp_c']}")
 
-# Temperature chart only
-temp_fig = px.line(
-    yearly_df,
-    x="year",
-    y="mean_temp_c",
-    title=f"🌡️ Average Yearly Temperature • Last {selected_n_years} Years",
-    labels={
-        "year": "Year",
-        "mean_temp_c": "Average temperature (°C)"
-    }
-)
-temp_fig = style_fig(temp_fig)
+# Historical sakura bloom dates
+if bloom_history_df.empty:
+    st.info("No historical sakura bloom dates found for this location.")
+else:
+    bloom_ts_fig = px.line(
+        bloom_history_df,
+        x="year",
+        y="day_of_year",
+        title=f"Historical Sakura Bloom Dates • Last {selected_n_years} Years",
+        labels={
+            "year": "Year",
+            "day_of_year": "Bloom date (day of year)"
+        },
+        color_discrete_sequence=["#E8AFCF"]
+    )
+    bloom_ts_fig = style_fig(bloom_ts_fig)
 
-st.plotly_chart(temp_fig, width="stretch")
+    # Add forecast point (2026 for now)
+    if not forecast_df.empty and pd.notna(forecast_df.loc[0, "predicted_day_of_year"]):
+        forecast_year = int(forecast_df.loc[0, "forecast_year"])
+        forecast_doy = float(forecast_df.loc[0, "predicted_day_of_year"])
+
+        bloom_ts_fig.add_scatter(
+            x=[forecast_year],
+            y=[forecast_doy],
+            mode="text",
+            name="forecast",
+            text=["🌸"],
+            textfont=dict(size=20),
+            showlegend=False
+        )
+    
+    st.plotly_chart(bloom_ts_fig, width="stretch")
+
+# Late-winter temperature vs bloom date
+if bloom_temp_df.empty or bloom_temp_df["mean_temp_feb_mar"].isna().all():
+    st.info("No matched temperature or bloom history data found for this station.")
+else:
+    bloom_scatter_fig = px.scatter(
+        bloom_temp_df.dropna(subset=["mean_temp_feb_mar", "day_of_year"]),
+        x="mean_temp_feb_mar",
+        y="day_of_year",
+        trendline="ols",
+        title="Late-Winter Temperature vs Bloom Date",
+        labels={
+            "mean_temp_feb_mar": "Average temperature in February–March (°C)",
+            "day_of_year": "Bloom date (day of year)"
+        },
+        hover_data=["year"]
+    )
+    bloom_scatter_fig = style_fig(bloom_scatter_fig)
+
+    # Style the markers
+    bloom_scatter_fig.update_traces(
+        marker=dict(
+            color="#E8AFCF",
+            size=5,
+            opacity=0.65,
+            line=dict(width=0)
+        ),
+        selector=dict(mode="markers")
+    )
+
+    # Style the trend line
+    bloom_scatter_fig.update_traces(
+        line=dict(
+            color="#D98BB8",
+            width=2
+        ),
+        selector=dict(mode="lines")
+    )
+
+    st.plotly_chart(bloom_scatter_fig, width="stretch")
 
 # Source footer
 st.markdown("---")
