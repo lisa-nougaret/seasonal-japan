@@ -212,7 +212,7 @@ filter_col1, filter_col2, empty_col1, empty_col2 = st.columns([1, 1, 1, 1]) # th
 
 # Filter for station
 options = list(station_label_map.keys())
-default_index = options.index("Tokyo") if "Tokyo" in options else 0
+default_index = options.index("TOKYO") if "TOKYO" in options else 0
 with filter_col1:
     selected_name = st.selectbox(
         "Please choose a station ▼",
