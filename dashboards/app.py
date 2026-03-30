@@ -210,17 +210,22 @@ station_label_map = {
 # Top filters
 filter_col1, filter_col2, empty_col1, empty_col2 = st.columns([1, 1, 1, 1]) # the 2 columns on the right remain blank
 
+# Filter for station
+options = list(station_label_map.keys())
+default_index = options.index("Tokyo") if "Tokyo" in options else 0
 with filter_col1:
     selected_name = st.selectbox(
         "Please choose a station ▼",
-        options=list(station_label_map.keys())
+        options=options,
+        index=default_index
     )
 
+# Filter for period
 with filter_col2:
     selected_n_years = st.selectbox(
         "Display the last ... years ▼",
         options=[10, 20, 30, 50, 100],
-        index=0 # set to shortest period by default
+        index=4 # set to longest period by default?
     )
 
 selected_station_code = station_label_map[selected_name]
