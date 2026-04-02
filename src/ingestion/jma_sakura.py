@@ -2,14 +2,11 @@ from __future__ import annotations
 
 # Import necessary libraries and modules
 import re
-from datetime import datetime
 from io import StringIO
 from typing import Optional
-from numpy import rint
 import pandas as pd
 import requests
-from bs4 import BeautifulSoup
-from sqlalchemy import table, text
+from sqlalchemy import text
 from src.db.db import get_engine
 
 # Constants for JMA sakura bloom data
@@ -99,39 +96,6 @@ def parse_jma_csv(csv_text: str) -> pd.DataFrame:
     # Build the final DataFrame using the reconstructed header
     df = raw_df.iloc[2:].copy()
     df.columns = unique_header
-    df = df.reset_index(drop=True)
-
-    # Drop columns that are completely empty
-    df = df.dropna(axis=1, how="all")
-
-    # Normalize empty strings
-    df = df.replace(r"^\s*$", pd.NA, regex=True)
-
-    return df    # Read the CSV without assuming that the first row is the header
-    raw_df = pd.read_csv(StringIO(csv_text), header=None)
-
-    # The actual header is stored in the first data row
-    header_row = [str(value).strip() if not pd.isna(value) else "" for value in raw_df.iloc[0].tolist()]
-
-    rebuilt_header = []
-    current_year = None
-
-    # Rebuild repeated "rm" columns into year-specific names such as "2026rm"
-    for value in header_row:
-        if re.fullmatch(r"(19|20)\d{2}", value):
-            current_year = value
-            rebuilt_header.append(value)
-        elif value == "rm":
-            if current_year is not None:
-                rebuilt_header.append(f"{current_year}rm")
-            else:
-                rebuilt_header.append("rm")
-        else:
-            rebuilt_header.append(value)
-
-    # Build the final DataFrame using the reconstructed header
-    df = raw_df.iloc[1:].copy()
-    df.columns = rebuilt_header
     df = df.reset_index(drop=True)
 
     # Drop columns that are completely empty

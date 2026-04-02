@@ -34,3 +34,9 @@ data/curated/*
 
 # Database dumps
 seasonal_japan_dump.sql
+
+# Model artifacts
+artifacts/
+*.joblib
+*.pkl
+*.json
