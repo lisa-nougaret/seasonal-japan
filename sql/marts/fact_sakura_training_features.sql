@@ -128,4 +128,5 @@ WHERE
     AND cf.winter_mean_temp IS NOT NULL
     AND cf.january_mean_temp IS NOT NULL
     AND cf.february_mean_temp IS NOT NULL
-    AND cf.march_mean_temp IS NOT NULL;
+    AND cf.march_mean_temp IS NOT NULL
+    AND cf.january_march_cumulative_temp IS NOT NULL;
