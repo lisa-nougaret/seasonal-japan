@@ -10,7 +10,7 @@ from src.features.sakura_model_pipeline import (
     save_model_artifact,
 )
 
-def main():
+def run_sakura_forecast_pipeline():
     print("Loading training data...")
     train_df = load_training_data()
 
@@ -64,4 +64,4 @@ def main():
     print("Forecast pipeline completed successfully.")
 
 if __name__ == "__main__":
-    main()
+    run_sakura_forecast_pipeline()
