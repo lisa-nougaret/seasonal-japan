@@ -25,7 +25,6 @@ REQUEST_HEADERS = {
 
 TIMEOUT_SECONDS = 20
 
-
 # Functions
 
 # Function to fetch text content from a given URL

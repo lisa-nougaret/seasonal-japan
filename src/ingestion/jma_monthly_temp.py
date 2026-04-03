@@ -26,9 +26,6 @@ BAD_STATION_CODES = {
     "47673", # TOMISAKI
 }
 
-engine = get_engine()
-
-
 def get_station_list() -> List[Tuple[str, str]]:
     """
     Scrape station names and station codes from the JMA monthly statistics page.
@@ -185,7 +182,7 @@ def fetch_station_data(station_name: str, station_code: str) -> pd.DataFrame:
     return final_df
 
 
-def load_raw(df: pd.DataFrame) -> None:
+def load_raw(df: pd.DataFrame, engine) -> None:
     with engine.begin() as conn:
         # Replace the whole raw table content for a clean reload
         conn.execute(text("TRUNCATE TABLE raw.jma_monthly_climate"))
@@ -202,6 +199,8 @@ def load_raw(df: pd.DataFrame) -> None:
 
 
 def main():
+    engine = get_engine()
+
     stations = get_station_list()
     print(f"Stations found: {len(stations)}")
 
@@ -228,7 +227,7 @@ def main():
     print(f"Rows to load: {len(final_df)}")
     print(f"Failed stations: {len(failed)}")
 
-    load_raw(final_df)
+    load_raw(final_df, engine)
     print("Load completed into raw.jma_monthly_climate")
 
     if failed:
