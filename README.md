@@ -42,12 +42,12 @@ Streamlit dashboard
 This pipeline is fully automated using GitHub Actions: 
 - 📅 Monthly, 15th of each month
 - ⚙️ Executes:
-        - Data ingestion (JMA climate & sakura data)
-        - Data transformation (SQL models)
-        - Feature engineering
-        - Model training & evaluation
-        - Forecast generation
-        - Database update (Neon PostgreSQL)
+  - Data ingestion (JMA climate & sakura data)
+  - Data transformation (SQL models)
+  - Feature engineering
+  - Model training & evaluation
+  - Forecast generation
+  - Database update (Neon PostgreSQL)
 
 ## 🛠️ Tech Stack
 
