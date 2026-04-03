@@ -1,13 +1,18 @@
 import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
-import streamlit as st
 
 load_dotenv()
 
+
 def get_engine():
-    if "database" in st.secrets:
-        db = st.secrets["database"]
+    try:
+        import streamlit as st
+        db = st.secrets.get("database", None)
+    except Exception:
+        db = None
+
+    if db:
         connection_string = (
             f"postgresql+psycopg://{db['user']}:{db['password']}"
             f"@{db['host']}:{db['port']}/{db['database']}?sslmode=require"
