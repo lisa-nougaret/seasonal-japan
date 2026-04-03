@@ -1,6 +1,6 @@
 # 🌸 When Will Sakura Bloom?
 
-**An end-to-end data engineering & analytics project to forecast sakura (cherry blossom) bloom timing in Japan.*
+*An end-to-end data engineering & analytics project to forecast sakura (cherry blossom) bloom timing in Japan.*
 
 ## ✨ Live Dashboard
 
