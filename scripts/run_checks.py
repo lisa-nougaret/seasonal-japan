@@ -9,6 +9,7 @@ SQL_CHECK_FILES = [
     BASE_DIR / "sql" / "checks" / "check_fact_sakura_events.sql",
     BASE_DIR / "sql" / "checks" / "check_sakura_raw.sql",
     BASE_DIR / "sql" / "checks" / "check_sakura_training_features.sql",
+    BASE_DIR / "sql" / "checks" / "check_sakura_prediction_features.sql",
 ]
 
 def run_checks():
