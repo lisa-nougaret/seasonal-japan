@@ -379,5 +379,5 @@ else:
 # Source footer
 st.markdown("---")
 st.caption(
-    f"Source: Japan Meteorological Agency (JMA) • Forecast model — {model_label_map.get(model_name)}" # • Updated [date]
+    f"Source: Japan Meteorological Agency (JMA) • Forecast model — {model_label_map.get(model_name)} • Updated {forecast_updated_at}" 
 )
