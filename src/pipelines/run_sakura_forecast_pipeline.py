@@ -4,7 +4,7 @@ from src.features.sakura_model_pipeline import (
     select_best_model,
     fit_final_model,
     load_prediction_features,
-    build_predictions,
+    build_all_model_predictions,
     save_predictions,
     save_model_artifact,
 )
@@ -59,12 +59,10 @@ def run_sakura_forecast_pipeline():
     print(f"Prediction rows: {len(pred_df)}")
 
     print("Building predictions...")
-    forecast_df = build_predictions(
+    forecast_df = build_all_model_predictions(
         pred_df=pred_df,
-        model=final_model,
-        model_name=best_model_name,
-        metrics=metrics,
-        training_row_count=len(train_df),
+        train_df=train_df,
+        selection_results=selection_results,
     )
 
     print("Saving predictions to database...")

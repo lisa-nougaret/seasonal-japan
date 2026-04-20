@@ -186,6 +186,7 @@ def build_predictions(
     model_name: str,
     metrics: dict, 
     training_row_count: int,
+    is_best_model: bool,
 ) -> pd.DataFrame:
     validate_feature_columns(pred_df, FEATURES)
 
@@ -201,6 +202,7 @@ def build_predictions(
 
     out["model_name"] = model_name
     out["model_version"] = MODEL_VERSION
+    out["is_best_model"] = is_best_model
     out["training_row_count"] = training_row_count
     out["rmse_days"] = metrics["rmse_days"]
     out["mae_days"] = metrics["mae_days"]
@@ -211,6 +213,32 @@ def build_predictions(
 
     return out
 
+def build_all_model_predictions(
+    train_df: pd.DataFrame,
+    pred_df: pd.DataFrame,
+    selection_results: pd.DataFrame,
+) -> pd.DataFrame:
+    best_model_name = selection_results.iloc[0]["model_name"]
+    outputs = []
+
+    for _, row in selection_results.iterrows():
+        model_name = row["model_name"]
+        metrics = row["metrics"]
+
+        model = fit_final_model(train_df, model_name=model_name)
+
+        forecast_df = build_predictions(
+            pred_df=pred_df,
+            model=model,
+            model_name=model_name,
+            metrics=metrics,
+            training_row_count=len(train_df),
+            is_best_model=(model_name == best_model_name),
+        )
+        outputs.append(forecast_df)
+
+    return pd.concat(outputs, ignore_index=True)
+
 def save_predictions(df: pd.DataFrame) -> None:
     if df.empty:
         return
@@ -218,23 +246,26 @@ def save_predictions(df: pd.DataFrame) -> None:
     engine = get_engine()
 
     forecast_years = df["forecast_year"].drop_duplicates().tolist()
-    model_name = df["model_name"].iloc[0]
+    model_names = df["model_name"].drop_duplicates().tolist()
     model_version = df["model_version"].iloc[0]
     event_type = df["event_type"].iloc[0]
 
     delete_sql = text("""
         DELETE FROM analytics.fact_sakura_forecast
-        WHERE model_name = :model_name
+        WHERE model_name IN :model_names
           AND model_version = :model_version
           AND event_type = :event_type
           AND forecast_year IN :forecast_years
-    """).bindparams(bindparam("forecast_years", expanding=True))
+    """).bindparams(
+        bindparam("forecast_years", expanding=True),
+        bindparam("model_names", expanding=True)
+    )
 
     with engine.begin() as conn:
         conn.execute(
             delete_sql,
             {
-                "model_name": model_name,
+                "model_names": model_names,
                 "model_version": model_version,
                 "event_type": event_type,
                 "forecast_years": forecast_years,

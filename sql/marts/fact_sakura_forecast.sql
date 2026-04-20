@@ -8,6 +8,7 @@ CREATE TABLE analytics.fact_sakura_forecast (
     predicted_event_date DATE NOT NULL,
     model_name TEXT NOT NULL,
     model_version TEXT NOT NULL,
+    is_best_model BOOLEAN NOT NULL DEFAULT FALSE,
     trained_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     training_row_count INTEGER,
     rmse_days NUMERIC,
@@ -15,4 +16,5 @@ CREATE TABLE analytics.fact_sakura_forecast (
     r2_score NUMERIC,
     prediction_status TEXT NOT NULL,
     source_name TEXT,
-    PRIMARY KEY (location_code, forecast_year, event_type, model_version)
+    PRIMARY KEY (location_code, forecast_year, event_type, model_version, model_name)
+);

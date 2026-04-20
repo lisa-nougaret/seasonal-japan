@@ -117,24 +117,18 @@ def get_bloom_forecast(location_code: str, year: int = 2026) -> pd.DataFrame:
         predicted_event_date,
         model_name,
         model_version,
-        prediction_status
+        prediction_status,
+        is_best_model
     FROM analytics.fact_sakura_forecast
     WHERE location_code = :location_code
       AND forecast_year = :year
       AND event_type = 'sakura_bloom'
-    ORDER BY
-        CASE model_name
-            WHEN 'random_forest' THEN 1
-            WHEN 'hist_gradient_boosting' THEN 2
-            WHEN 'linear_regression' THEN 3
-            ELSE 99
-        END,
-        model_version DESC
+      AND is_best_model = TRUE
     LIMIT 1;
     """)
     engine = get_engine()
     return pd.read_sql(
         query,
         engine,
-        params={"location_code": location_code, "year": year}
+        params={"location_code": location_code, "year": year},
     )
