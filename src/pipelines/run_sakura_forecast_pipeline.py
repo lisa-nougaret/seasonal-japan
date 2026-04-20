@@ -1,8 +1,7 @@
 from src.features.sakura_model_pipeline import (
     load_training_data,
     split_training_data,
-    train_linear_model,
-    evaluate_model,
+    select_best_model,
     fit_final_model,
     load_prediction_features,
     build_predictions,
@@ -23,21 +22,30 @@ def run_sakura_forecast_pipeline():
     print("Splitting training/test data...")
     X_train, X_test, y_train, y_test = split_training_data(train_df)
 
-    print("Training evaluation model...")
-    eval_model = train_linear_model(X_train, y_train)
+    print("Comparing candidate models...")
+    selection_results = select_best_model(
+        X_train=X_train,
+        y_train=y_train,
+        X_test=X_test,
+        y_test=y_test,
+    )
 
-    print("Evaluating model...")
-    metrics = evaluate_model(eval_model, X_test, y_test)
+    best_model_name = selection_results.iloc[0]["model_name"]
+    metrics = selection_results.iloc[0]["metrics"]
+
+    print(f"Best model: {best_model_name}")
     print("Metrics:", metrics)
 
     print("Fitting final model on full training data...")
-    final_model = fit_final_model(train_df)
+    final_model = fit_final_model(train_df, model_name=best_model_name)
 
     print("Saving model artifact...")
     model_path = save_model_artifact(
-        final_model,
+        model=final_model,
+        model_name=best_model_name,
         metrics=metrics,
         training_row_count=len(train_df),
+        selection_results=selection_results,
     )
     print(f"Model saved to: {model_path}")
 
@@ -54,6 +62,7 @@ def run_sakura_forecast_pipeline():
     forecast_df = build_predictions(
         pred_df=pred_df,
         model=final_model,
+        model_name=best_model_name,
         metrics=metrics,
         training_row_count=len(train_df),
     )

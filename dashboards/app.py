@@ -290,6 +290,8 @@ else:
 
 model_label_map = {
     "linear_regression": "Linear Regression",
+    "random_forest": "Random Forest",
+    "hist_gradient_boosting": "Histogram Gradient Boosting",
 }
 
 # KPI row
@@ -375,5 +377,5 @@ else:
 # Source footer
 st.markdown("---")
 st.caption(
-    f"Source: Japan Meteorological Agency (JMA) • Forecast model — {model_label_map.get(model_name)} • Updated March 2026"
+    f"Source: Japan Meteorological Agency (JMA) • Forecast model — {model_label_map.get(model_name)}" # • Updated [date]
 )
