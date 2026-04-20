@@ -282,11 +282,13 @@ if not forecast_df.empty and pd.notna(forecast_df.loc[0, "predicted_event_date"]
     bloom_doy = int(forecast_df.loc[0, "predicted_day_of_year"])
     model_name = forecast_df.loc[0, "model_name"]
     model_version = forecast_df.loc[0, "model_version"]
+    forecast_updated_at = pd.to_datetime(forecast_df.loc[0, "trained_at"]).strftime("%d %b %Y")
 else:
     bloom_date = "Not available"
     bloom_doy = "—"
     model_name = "Not available"
     model_version = ""
+    forecast_updated_at = "Not available"
 
 model_label_map = {
     "linear_regression": "Linear Regression",

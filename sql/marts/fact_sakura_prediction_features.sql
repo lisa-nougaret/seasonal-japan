@@ -109,11 +109,3 @@ WHERE
     AND february_mean_temp IS NOT NULL
     AND march_mean_temp IS NOT NULL
     AND january_march_cumulative_temp IS NOT NULL;
-
-SELECT
-model_name,
-model_version,
-trained_at
-FROM analytics.fact_sakura_forecast
-WHERE is_best_model = TRUE
-LIMIT 10;

@@ -118,7 +118,8 @@ def get_bloom_forecast(location_code: str, year: int = 2026) -> pd.DataFrame:
         model_name,
         model_version,
         prediction_status,
-        is_best_model
+        is_best_model,
+        trained_at
     FROM analytics.fact_sakura_forecast
     WHERE location_code = :location_code
       AND forecast_year = :year
