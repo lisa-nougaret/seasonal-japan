@@ -222,7 +222,7 @@ def main():
 
     final_df = pd.concat(all_frames, ignore_index=True)
 
-    print("\n--- FINAL DATAFRAME PREVIEW ---")
+    print("\n▼ FINAL DATAFRAME PREVIEW ▼")
     print(final_df.head(20))
     print(f"Rows to load: {len(final_df)}")
     print(f"Failed stations: {len(failed)}")
@@ -231,7 +231,7 @@ def main():
     print("Load completed into raw.jma_monthly_climate")
 
     if failed:
-        print("\n--- FAILED STATIONS ---")
+        print("\n▼ FAILED STATIONS ▼")
         for item in failed[:20]:
             print(item)
 

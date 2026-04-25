@@ -17,7 +17,12 @@ from src.viz.dashboard_queries import (
     get_climate_kpis,
     get_bloom_forecast,
     get_bloom_history,
-    get_bloom_temp_features
+    get_bloom_temp_features,
+    get_sakura_forecast_map
+)
+
+from src.viz.plots import (
+    plot_sakura_forecast_map
 )
 
 import base64
@@ -301,6 +306,17 @@ col1, col2, col3, empty_kpi = st.columns(4)
 col1.metric("Forecasted bloom date", bloom_date)
 col2.metric("Average temperature (°C)", kpi_df.loc[0, "avg_temp_c"])
 col3.metric("Temperature range (°C)", f"{kpi_df.loc[0, 'min_temp_c']} to {kpi_df.loc[0, 'max_temp_c']}")
+
+# Sakura forecast map
+map_df = get_sakura_forecast_map(year=2026)
+
+st.subheader("Sakura Bloom Forecast Map")
+
+if map_df.empty:
+    st.info("No forecast map data available.")
+else:
+    fig_map = plot_sakura_forecast_map(map_df)
+    st.plotly_chart(fig_map, width="stretch")
 
 # Historical sakura bloom dates
 if bloom_history_df.empty:

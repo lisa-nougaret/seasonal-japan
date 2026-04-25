@@ -6,7 +6,10 @@ def get_station_list() -> pd.DataFrame:
     query = """
     SELECT
         station_code,
-        station_name
+        location_code,
+        station_name,
+        latitude,
+        longitude
     FROM analytics.dim_station
     ORDER BY station_name;
     """
@@ -133,3 +136,42 @@ def get_bloom_forecast(location_code: str, year: int = 2026) -> pd.DataFrame:
         engine,
         params={"location_code": location_code, "year": year},
     )
+
+def get_sakura_forecast_map(year: int = 2026) -> pd.DataFrame:
+    query = text("""
+        SELECT
+            s.station_code,
+            s.location_code,
+            s.station_name,
+            s.latitude,
+            s.longitude,
+            f.forecast_year,
+            f.predicted_day_of_year,
+            f.predicted_event_date,
+            f.model_name,
+            f.mae_days,
+            f.rmse_days
+        FROM analytics.fact_sakura_forecast f
+        JOIN analytics.dim_station s
+            ON f.location_code::text = s.location_code::text
+        WHERE f.forecast_year = :year
+            AND f.event_type = 'sakura_bloom'
+            AND f.is_best_model = TRUE
+            AND s.latitude IS NOT NULL
+            AND s.longitude IS NOT NULL
+        ORDER BY f.predicted_event_date
+    """)
+
+    engine = get_engine()
+
+    with engine.connect() as conn:
+        df = pd.read_sql(query, conn, params={"year": year})
+
+    if not df.empty:
+        df['predicted_event_date'] = pd.to_datetime(df['predicted_event_date'])
+        df['bloom_label'] = df['predicted_event_date'].dt.strftime('%d %b %Y')
+        df['mae_days'] = pd.to_numeric(df['mae_days'], errors='coerce')
+        df['rmse_days'] = pd.to_numeric(df['rmse_days'], errors='coerce')
+        df["predicted_day_of_year"] = pd.to_numeric(df["predicted_day_of_year"], errors='coerce')
+
+    return df
