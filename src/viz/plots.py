@@ -33,8 +33,6 @@ def plot_sakura_forecast_map(df: pd.DataFrame):
             opacity=0.9,
             line=dict(width=0.8, color="white")
         ),
-        customdata=df[["hover_text"]],
-        hovertemplate="%{customdata[0]}<extra></extra>",
     )
 
     fig.update_geos(
