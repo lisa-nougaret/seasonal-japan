@@ -2,62 +2,96 @@ import pandas as pd
 import plotly.express as px
 
 def plot_sakura_forecast_map(df: pd.DataFrame):
-    fig = px.scatter_geo(
+    df = df.copy()
+
+    df["hover_title"] = df["station_name"].str.title()
+    df["hover_bloom"] = "🌸 " + df["bloom_label"]
+    df["hover_model"] = df["model_name"].str.replace("_", " ").str.title()
+
+    fig = px.scatter_mapbox(
         df,
         lat="latitude",
         lon="longitude",
         color="predicted_day_of_year",
-        hover_name="station_name",
+        hover_name="hover_title",
         hover_data={
+            "hover_bloom": True,
+            "hover_model": True,
+            "mae_days": ":.1f",
+            "rmse_days": ":.1f",
             "latitude": False,
             "longitude": False,
-            "bloom_label": True,
             "predicted_day_of_year": False,
             "model_name": False,
-            "mae_days": False,
-            "rmse_days": False,
+            "station_name": False,
+            "bloom_label": False,
         },
         color_continuous_scale=[
-        "#fde0ef",
-        "#f9b4d0",
-        "#f768a1",
-        "#c51b8a",
-        "#7a0177"
+            "#F2E6B8", 
+            "#F1CCA6", 
+            "#F2BFB4",
+            "#F28695",
+            "#C9B6E4",
         ],
-        projection="mercator",
+        zoom=3,
+        center={"lat": 36.5, "lon": 138.0},
+        height=560,
     )
 
     fig.update_traces(
         marker=dict(
-            size=11,
-            opacity=0.9,
-            line=dict(width=0.8, color="white")
+            size=15,
+            opacity=0.92,
         ),
-    )
-
-    fig.update_geos(
-        fitbounds="locations",
-        showland=True,
-        landcolor="rgb(247, 244, 246)",
-        showocean=True,
-        oceancolor="rgb(252, 249, 251)",
-        showcountries=False,
-        showcoastlines=True,
-        coastlinecolor="rgba(120,120,120,0.35)",
-        lataxis_range=[24, 47],
-        lonaxis_range=[122, 147],
-        bgcolor="rgba(0,0,0,0)"
+        hovertemplate=(
+            "<b>%{hovertext}</b><br><br>"
+            "%{customdata[0]}<br>"
+            "Model: %{customdata[1]}<br>"
+            # "MAE: %{customdata[2]} days<br>"
+            # "RMSE: %{customdata[3]} days"
+            "<extra></extra>"
+        )
     )
 
     fig.update_layout(
-        title="Forecasted Sakura Bloom Dates Across Japan",
-        margin=dict(l=0, r=0, t=60, b=0),
+        title=dict(
+            text="Forecasted Sakura Bloom Dates Across Japan",
+        ),
+        mapbox_style="white-bg",
+        mapbox=dict(
+            style="white-bg",
+            center=dict(lat=36.5, lon=138.0),
+            zoom=3,
+            layers=[
+                {
+                    "source": "https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json",
+                    "type": "line",
+                    "color": "rgba(130, 110, 120, 0.35)",
+                    "line": {"width": 0.8},
+                },
+            ],
+        ),
+
+        margin=dict(l=0, r=0, t=70, b=0),
+
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        coloraxis_colorbar=dict(
-            title="Bloom day<br>of year"
+        font=dict(
+            family="Helvetica Neue, Helvetica, Arial, sans-serif",
+            color="#000000"
         ),
-        height=700
+        coloraxis_colorbar=dict(
+            title=dict(
+                text="Bloom<br>timing",
+                font=dict(color="#000000")
+            ),
+            thickness=14,
+            len=0.55,
+            x=0.98,
+            y=0.5,
+            outlinewidth=0,
+            tickfont=dict(color="#000000")
+        ),
     )
 
     return fig
