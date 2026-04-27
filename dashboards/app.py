@@ -211,7 +211,7 @@ station_label_map = {
 }
 
 # Filters below map
-filter_col1, filter_col2, empty_col1, empty_col2 = st.columns([1, 1, 1, 1])
+filter_col1, empty_col1, empty_col2 = st.columns([1, 1, 1])
 
 options = list(station_label_map.keys())
 default_index = options.index("TOKYO") if "TOKYO" in options else 0
@@ -223,12 +223,7 @@ with filter_col1:
         index=default_index,
     )
 
-with filter_col2:
-    selected_n_years = st.selectbox(
-        "Display the last ... years ▼",
-        options=[10, 20, 30, 50, 100],
-        index=4,
-    )
+    selected_n_years = 100
 
 selected_station_code = station_label_map[selected_name]
 selected_location_code = str(int(selected_station_code) - 47000)
