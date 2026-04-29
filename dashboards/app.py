@@ -196,11 +196,23 @@ st.markdown("""
 # Map first
 map_df = get_sakura_forecast_map(year=2026)
 
+clicked_station_code = None
+
 if map_df.empty:
     st.info("No forecast map data available.")
 else:
     fig_map = plot_sakura_forecast_map(map_df)
-    st.plotly_chart(fig_map, width='stretch')
+    map_event = st.plotly_chart(
+        fig_map,
+        width='stretch',
+        key="sakura_map",
+        on_select="rerun",
+        selection_mode="points",
+    )
+
+    if map_event and map_event.selection.points:
+        clicked_point = map_event.selection.points[0]
+        clicked_station_code = str(clicked_point["customdata"][0])
 
 # Load stations
 stations = get_station_list()
@@ -210,20 +222,27 @@ station_label_map = {
     for _, row in stations.iterrows()
 }
 
-# Filters below map
-filter_col1, empty_col1, empty_col2 = st.columns([1, 1, 1])
-
 options = list(station_label_map.keys())
 default_index = options.index("TOKYO") if "TOKYO" in options else 0
 
-with filter_col1:
-    selected_name = st.selectbox(
-        "Please choose a station ▼",
-        options=options,
-        index=default_index,
-    )
+reverse_station_label_map = {
+    str(v): k for k, v in station_label_map.items()
+}
 
-    selected_n_years = 100
+# Initialize selected station once
+if "selected_station_name" not in st.session_state:
+    st.session_state["selected_station_name"] = options[default_index]
+
+# Update selected station from map click
+if clicked_station_code and clicked_station_code in reverse_station_label_map:
+    st.session_state["selected_station_name"] = reverse_station_label_map[clicked_station_code]
+
+# Final selected station used by KPIs and charts
+selected_name = st.session_state["selected_station_name"]
+
+st.markdown(f"""Selected station: {selected_name.title()}""")
+
+selected_n_years = 100
 
 selected_station_code = station_label_map[selected_name]
 selected_location_code = str(int(selected_station_code) - 47000)

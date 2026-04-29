@@ -15,6 +15,8 @@ def plot_sakura_forecast_map(df: pd.DataFrame):
         color="predicted_day_of_year",
         hover_name="hover_title",
         hover_data={
+            "station_code": True,
+            "location_code": True,
             "hover_bloom": True,
             "hover_model": True,
             "mae_days": ":.1f",
@@ -45,10 +47,10 @@ def plot_sakura_forecast_map(df: pd.DataFrame):
         ),
         hovertemplate=(
             "<b>%{hovertext}</b><br><br>"
-            "%{customdata[0]}<br>"
-            "Model: %{customdata[1]}<br>"
-            # "MAE: %{customdata[2]} days<br>"
-            # "RMSE: %{customdata[3]} days"
+            "%{customdata[2]}<br>"
+            "Model: %{customdata[3]}<br>"
+            # "MAE: %{customdata[4]} days<br>"
+            # "RMSE: %{customdata[5]} days"
             "<extra></extra>"
         )
     )
