@@ -21,37 +21,37 @@ from src.viz.dashboard_queries import (
 
 from src.viz.plots import plot_sakura_forecast_map
 
-def add_bg_from_local(image_file):
-    with open(image_file, "rb") as image:
-        encoded = base64.b64encode(image.read()).decode()
+# def add_bg_from_local(image_file):
+#     with open(image_file, "rb") as image:
+#         encoded = base64.b64encode(image.read()).decode()
 
-    st.markdown(
-        f"""
-        <style>
-        .stApp {{
-            background-image: url("data:image/png;base64,{encoded}");
-            background-size: cover;
-            background-position: left center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-        }}
+#     st.markdown(
+#         f"""
+#         <style>
+#         .stApp {{
+#             background-image: url("data:image/png;base64,{encoded}");
+#             background-size: cover;
+#             background-position: left center;
+#             background-repeat: no-repeat;
+#             background-attachment: fixed;
+#         }}
 
-        .stApp::before {{
-            content: "";
-            position: fixed;
-            inset: 0;
-            background: rgba(247, 244, 242, 0.1);
-            z-index: 0;
-        }}
+#         .stApp::before {{
+#             content: "";
+#             position: fixed;
+#             inset: 0;
+#             background: rgba(247, 244, 242, 0.1);
+#             z-index: 0;
+#         }}
 
-        .stApp > div {{
-            position: relative;
-            z-index: 1;
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
+#         .stApp > div {{
+#             position: relative;
+#             z-index: 1;
+#         }}
+#         </style>
+#         """,
+#         unsafe_allow_html=True,
+#     )
 
 def add_floating_petals(image_path: str):
     with open(image_path, "rb") as f:
@@ -105,7 +105,7 @@ def add_floating_petals(image_path: str):
     )
 
 st.set_page_config(page_title="Seasonal Japan", page_icon="🌸", layout="wide")
-add_bg_from_local("dashboards/assets/sakura_blurred.png")
+# add_bg_from_local("dashboards/assets/sakura_blurred.png")
 add_floating_petals("dashboards/assets/sakura_petal.png")
 
 st.markdown("""
