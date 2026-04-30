@@ -208,6 +208,12 @@ else:
         key="sakura_map",
         on_select="rerun",
         selection_mode="points",
+        config={
+            "displayModeBar": False,
+            "scrollZoom": False,
+            "doubleClick": False,
+            "staticPlot": False,
+        }
     )
 
     if map_event and map_event.selection.points:
