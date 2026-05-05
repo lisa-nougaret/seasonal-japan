@@ -81,8 +81,7 @@ def plot_sakura_forecast_map(df: pd.DataFrame):
     )
 
     fig.update_layout(
-        title=dict(text="Forecasted Sakura Bloom Dates Across Japan"),
-        height=620,
+        height=430,
         margin=dict(l=0, r=0, t=70, b=0),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
@@ -103,7 +102,7 @@ def plot_sakura_forecast_map(df: pd.DataFrame):
             lataxis=dict(range=[24, 46]),
         ),
         hoverlabel=dict(
-            bgcolor="rgba(255, 255, 255, 0.70)",
+            bgcolor="rgba(255, 255, 255, 0.85)",
             bordercolor="rgba(200, 200, 200, 0)",
             font=dict(
                 color="#000000",

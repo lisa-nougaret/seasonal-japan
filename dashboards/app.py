@@ -122,31 +122,41 @@ html, body, [class*="css"]  {
     padding-right: 3rem !important;
 }
 
-[data-testid="stPlotlyChart"] {
-    background: linear-gradient(
-        135deg,
-        rgba(242, 230, 184, 0.55),
-        rgba(242, 191, 180, 0.50),
-        rgba(201, 182, 228, 0.45)
-    );
-    border-radius: 28px;
-    padding: 1rem;
-    box-shadow: 0 25px 70px rgba(200, 86, 112, 0.18);
-    backdrop-filter: blur(4px);
-    overflow: hidden;
+.hero-block {
+    padding-top: 5rem;
+    padding-left: 0.5rem;
 }
 
-    /* Remove internal rectangular background */
+.hero-block h1 {
+    font-size: 2.6rem;
+    line-height: 1.05;
+    font-weight: 800;
+    letter-spacing: 0px;
+    color: #050505;
+    margin-bottom: 1.4rem;
+}
+
+.hero-block p {
+    font-size: 0.95rem;
+    line-height: 1.45;
+    color: #777;
+    margin-bottom: 2rem;
+}
+
+[data-testid="stPlotlyChart"] {
+    background: transparent !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+}
+
 [data-testid="stPlotlyChart"] > div,
 [data-testid="stPlotlyChart"] .js-plotly-plot,
 [data-testid="stPlotlyChart"] .plot-container,
 [data-testid="stPlotlyChart"] .svg-container {
     background: transparent !important;
-}        
-
-h1, h2, h3 {
-    font-weight: 300 !important;
-}
+}     
 
 label {
     font-weight: 300;
@@ -183,42 +193,47 @@ def style_fig(fig):
 
     return fig
 
-# Hero
-st.markdown("""
-<div class="hero-block">
-    <h1>When Will Sakura Bloom This Year?</h1>
-    <p>
-        Explore historical temperature patterns and forecasted sakura first bloom dates, across Japan.
-    </p>
-</div>
-""", unsafe_allow_html=True)
-
-# Map first
+# Hero + Map
 map_df = get_sakura_forecast_map(year=2026)
 
 clicked_station_code = None
 
-if map_df.empty:
-    st.info("No forecast map data available.")
-else:
-    fig_map = plot_sakura_forecast_map(map_df)
-    map_event = st.plotly_chart(
-        fig_map,
-        width='stretch',
-        key="sakura_map",
-        on_select="rerun",
-        selection_mode="points",
-        config={
-            "displayModeBar": False,
-            "scrollZoom": False,
-            "doubleClick": False,
-            "staticPlot": False,
-        }
-    )
+hero_left, hero_right = st.columns([0.75, 1.25], gap="large")
 
-    if map_event and map_event.selection.points:
-        clicked_point = map_event.selection.points[0]
-        clicked_station_code = str(clicked_point["customdata"][0])
+with hero_left:
+    st.markdown("""
+    <div class="hero-block">
+        <h1>When Will Sakura<br>Bloom in Japan?</h1>
+        <p>
+            Explore forecasted sakura bloom dates<br>
+            across Japan, along with historical<br>
+            temperature patterns.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+with hero_right:
+    if map_df.empty:
+        st.info("No forecast map data available.")
+    else:
+        fig_map = plot_sakura_forecast_map(map_df)
+        map_event = st.plotly_chart(
+            fig_map,
+            width="stretch",
+            key="sakura_map",
+            on_select="rerun",
+            selection_mode="points",
+            config={
+                "displayModeBar": False,
+                "scrollZoom": False,
+                "doubleClick": False,
+                "staticPlot": False,
+            },
+        )
+
+        if map_event and map_event.selection.points:
+            clicked_point = map_event.selection.points[0]
+            clicked_station_code = str(clicked_point["customdata"][0])
 
 # Load stations
 stations = get_station_list()
