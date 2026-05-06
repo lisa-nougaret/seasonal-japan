@@ -1,11 +1,15 @@
 import json
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 
 def plot_sakura_forecast_map(df: pd.DataFrame):
     df = df.copy()
+    min_val = df["predicted_day_of_year"].min()
+    max_val = df["predicted_day_of_year"].max()
+    tickvals = np.linspace(min_val, max_val, 3)
 
     geojson_path = Path("dashboards/assets/japan.geojson")
 
@@ -62,13 +66,24 @@ def plot_sakura_forecast_map(df: pd.DataFrame):
                     [1.00, "#C9B6E4"],
                 ],
                 colorbar=dict(
-                    title=dict(text="Bloom<br>timing", font=dict(color="#000000")),
-                    thickness=14,
-                    len=0.55,
-                    x=0.98,
-                    y=0.5,
+                    # title=dict(
+                        # text="Bloom<br>timing", 
+                        # side="top",
+                        # font=dict(color="#000000", size=10),
+                        # ),
+                    orientation="h",
+                    thickness=12,
+                    len=0.16,
+                    x=0.73,
+                    xanchor="center",
+                    y=0.10,
+                    yanchor="bottom",
                     outlinewidth=0,
-                    tickfont=dict(color="#000000"),
+                    tickmode="array",
+                    tickvals=tickvals,
+                    ticktext=["early", "mid", "late"],
+                    tickfont=dict(color="#000000", size=10),
+                    ticks="",
                 ),
             ),
             hovertemplate=(
@@ -88,6 +103,7 @@ def plot_sakura_forecast_map(df: pd.DataFrame):
         dragmode=False,
         clickmode="event+select",
         geo=dict(
+            domain=dict(x=[0, 1], y=[0.02, 0.98]), # to freeze map position
             projection_type="mercator",
             showland=False,
             showocean=False,
@@ -97,9 +113,8 @@ def plot_sakura_forecast_map(df: pd.DataFrame):
             showcoastlines=False,
             showframe=False,
             bgcolor="rgba(0,0,0,0)",
-            fitbounds="locations",
-            lonaxis=dict(range=[122, 154]),
-            lataxis=dict(range=[24, 46]),
+            lonaxis=dict(range=[120, 150]),
+            lataxis=dict(range=[23, 47]),
         ),
         hoverlabel=dict(
             bgcolor="rgba(255, 255, 255, 0.85)",
