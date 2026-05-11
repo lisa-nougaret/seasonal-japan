@@ -104,7 +104,12 @@ def add_floating_petals(image_path: str):
         unsafe_allow_html=True,
     )
 
-st.set_page_config(page_title="Seasonal Japan", page_icon="🌸", layout="wide")
+st.set_page_config(
+    page_title="Seasonal Japan", 
+    page_icon="🌸", 
+    layout="wide"
+)
+
 # add_bg_from_local("dashboards/assets/sakura_blurred.png")
 add_floating_petals("dashboards/assets/sakura_petal.png")
 
@@ -193,6 +198,28 @@ def style_fig(fig):
 
     return fig
 
+# Stations
+
+stations = get_station_list()
+
+station_label_map = {
+    row["station_name"]: row["station_code"]
+    for _, row in stations.iterrows()
+}
+
+options = list(station_label_map.keys())
+default_index = options.index("TOKYO") if "TOKYO" in options else 0
+
+reverse_station_label_map = {
+    str(v): k for k, v in station_label_map.items()
+}
+
+if "selected_station_name" not in st.session_state:
+    st.session_state["selected_station_name"] = options[default_index]
+
+selected_name = st.session_state["selected_station_name"]
+selected_station_code = station_label_map[selected_name]
+
 # Hero + Map
 map_df = get_sakura_forecast_map(year=2026)
 
@@ -216,7 +243,10 @@ with hero_right:
     if map_df.empty:
         st.info("No forecast map data available.")
     else:
-        fig_map = plot_sakura_forecast_map(map_df)
+        fig_map = plot_sakura_forecast_map(
+            map_df,
+             selected_station_code=selected_station_code
+        )
         map_event = st.plotly_chart(
             fig_map,
             width="stretch",
@@ -235,38 +265,26 @@ with hero_right:
             clicked_point = map_event.selection.points[0]
             clicked_station_code = str(clicked_point["customdata"][0])
 
-# Load stations
-stations = get_station_list()
+# Update selected station based on map click
 
-station_label_map = {
-    row["station_name"]: row["station_code"]
-    for _, row in stations.iterrows()
-}
+if (
+    clicked_station_code
+    and clicked_station_code in reverse_station_label_map
+    and clicked_station_code != str(station_label_map[st.session_state["selected_station_name"]])
+):
+    st.session_state["selected_station_name"] = (
+        reverse_station_label_map[clicked_station_code]
+    )
+    st.rerun()
 
-options = list(station_label_map.keys())
-default_index = options.index("TOKYO") if "TOKYO" in options else 0
+# Final station state after handling map click
 
-reverse_station_label_map = {
-    str(v): k for k, v in station_label_map.items()
-}
-
-# Initialize selected station once
-if "selected_station_name" not in st.session_state:
-    st.session_state["selected_station_name"] = options[default_index]
-
-# Update selected station from map click
-if clicked_station_code and clicked_station_code in reverse_station_label_map:
-    st.session_state["selected_station_name"] = reverse_station_label_map[clicked_station_code]
-
-# Final selected station used by KPIs and charts
 selected_name = st.session_state["selected_station_name"]
-
-st.markdown(f"""Selected station: {selected_name.title()}""")
-
-selected_n_years = 100
-
 selected_station_code = station_label_map[selected_name]
 selected_location_code = str(int(selected_station_code) - 47000)
+selected_n_years = 100
+
+# Load data
 
 bloom_history_df = get_bloom_history(selected_location_code)
 bloom_temp_df = get_bloom_temp_features(selected_station_code, selected_location_code)
@@ -278,6 +296,8 @@ kpi_df = get_climate_kpis(selected_station_code)
 if df.empty:
     st.warning("No climate data found for this station.")
     st.stop()
+
+# Prepare data
 
 df["date_key"] = pd.to_datetime(df["date_key"])
 df["year"] = df["date_key"].dt.year
@@ -303,6 +323,8 @@ if not bloom_history_df.empty:
 if not bloom_temp_df.empty:
     bloom_temp_df = bloom_temp_df[bloom_temp_df["year"] >= min_year_to_keep]
 
+# Forecast info
+
 if not forecast_df.empty and pd.notna(forecast_df.loc[0, "predicted_event_date"]):
     bloom_date = pd.to_datetime(forecast_df.loc[0, "predicted_event_date"]).strftime("%d %b %Y")
     model_name = forecast_df.loc[0, "model_name"]
@@ -319,6 +341,7 @@ model_label_map = {
 }
 
 # KPI row
+
 kpi1, kpi2, kpi3 = st.columns(3)
 
 kpi1.metric("Forecasted bloom date", bloom_date)
@@ -329,6 +352,7 @@ kpi3.metric(
 )
 
 # Charts row
+
 chart_col1, chart_col2 = st.columns(2)
 
 with chart_col1:

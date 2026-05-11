@@ -5,11 +5,18 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 
-def plot_sakura_forecast_map(df: pd.DataFrame):
+def plot_sakura_forecast_map(
+    df: pd.DataFrame, 
+    selected_station_code: str | None = None,
+):
     df = df.copy()
+    df["station_code"] = df["station_code"].astype(str)
     min_val = df["predicted_day_of_year"].min()
     max_val = df["predicted_day_of_year"].max()
     tickvals = np.linspace(min_val, max_val, 3)
+
+    selected_station_code = str(selected_station_code) if selected_station_code is not None else None
+    has_selected_station = selected_station_code in df["station_code"].values
 
     geojson_path = Path("dashboards/assets/japan.geojson")
 
@@ -19,6 +26,14 @@ def plot_sakura_forecast_map(df: pd.DataFrame):
     df["hover_title"] = df["station_name"].str.title()
     df["hover_bloom"] = "🌸 " + df["bloom_label"]
     df["hover_uncertainty"] = "± " + df["mae_days"].round(1).astype(str) + " days"
+
+    colorscale = [
+        [0.00, "#F2E6B8"],
+        [0.25, "#F1CCA6"],
+        [0.50, "#F2BFB4"],
+        [0.75, "#F28695"],
+        [1.00, "#C9B6E4"],
+    ]
 
     fig = go.Figure()
 
@@ -34,10 +49,11 @@ def plot_sakura_forecast_map(df: pd.DataFrame):
             marker_line_width=1.1,
             showscale=False,
             hoverinfo="skip",
+            showlegend=False,
         )
     )
 
-    # Sakura forecast points
+    # All stations, slightly faded when one station is selected
     fig.add_trace(
         go.Scattergeo(
             lat=df["latitude"],
@@ -56,21 +72,13 @@ def plot_sakura_forecast_map(df: pd.DataFrame):
             ],
             marker=dict(
                 size=15,
-                opacity=0.92,
+                opacity=0.90,
                 color=df["predicted_day_of_year"],
-                colorscale=[
-                    [0.00, "#F2E6B8"],
-                    [0.25, "#F1CCA6"],
-                    [0.50, "#F2BFB4"],
-                    [0.75, "#F28695"],
-                    [1.00, "#C9B6E4"],
-                ],
+                colorscale=colorscale,
+                cmin=min_val,
+                cmax=max_val,
+                line=dict(width=0),
                 colorbar=dict(
-                    # title=dict(
-                        # text="Bloom<br>timing", 
-                        # side="top",
-                        # font=dict(color="#000000", size=10),
-                        # ),
                     orientation="h",
                     thickness=12,
                     len=0.16,
@@ -92,8 +100,64 @@ def plot_sakura_forecast_map(df: pd.DataFrame):
                 "<span style='font-size:12px; color:#777;'>%{customdata[3]}</span>"
                 "<extra></extra>"
             ),
+            showlegend=False,
         )
     )
+
+    # Selected station, same color scale, outlined
+    if has_selected_station:
+        selected_df = df[df["station_code"] == selected_station_code]
+
+        if not selected_df.empty:
+            selected = selected_df.iloc[0]
+
+            text_position = (
+                "middle left"
+                if selected["longitude"] > 140
+                else "middle right"
+            )
+
+            fig.add_trace(
+                go.Scattergeo(
+                    lat=[selected["latitude"]],
+                    lon=[selected["longitude"]],
+                    mode="markers+text",
+                    text=[
+                        f"<b>{selected['hover_title']}</b>"
+                    ],
+                    customdata=[
+                        [
+                            selected["station_code"],
+                            selected["location_code"],
+                            selected["hover_bloom"],
+                            selected["hover_uncertainty"],
+                            selected["mae_days"],
+                            selected["rmse_days"],
+                        ]
+                    ],
+                    textposition=text_position,
+                    textfont=dict(
+                        size=14,
+                        color="#050505",
+                        family="Arial, sans-serif",
+                    ),
+                    marker=dict(
+                        size=15,
+                        opacity=1,
+                        color=[selected["predicted_day_of_year"]],
+                        colorscale=colorscale,
+                        cmin=min_val,
+                        cmax=max_val,
+                        line=dict(
+                            width=1.2,
+                            color="rgba(0, 0, 0, 0.75)",
+                        ),
+                        showscale=False,
+                    ),
+                    hoverinfo="skip",
+                    showlegend=False,
+                )
+            )
 
     fig.update_layout(
         height=430,
@@ -102,8 +166,9 @@ def plot_sakura_forecast_map(df: pd.DataFrame):
         plot_bgcolor="rgba(0,0,0,0)",
         dragmode=False,
         clickmode="event+select",
+        showlegend=False,
         geo=dict(
-            domain=dict(x=[0, 1], y=[0.02, 0.98]), # to freeze map position
+            domain=dict(x=[0, 1], y=[0.02, 0.98]),
             projection_type="mercator",
             showland=False,
             showocean=False,
