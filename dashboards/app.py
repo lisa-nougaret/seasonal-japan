@@ -264,7 +264,7 @@ if (
 selected_name = st.session_state["selected_station_name"]
 selected_station_code = station_label_map[selected_name]
 selected_location_code = str(int(selected_station_code) - 47000)
-selected_n_years = 30
+selected_n_years = 20
 
 # Load data
 
@@ -291,12 +291,12 @@ if not bloom_temp_df.empty:
     bloom_temp_df["date_key"] = pd.to_datetime(bloom_temp_df["date_key"])
     bloom_temp_df["year"] = bloom_temp_df["year"].astype(int)
 
-if not bloom_history_df.empty:
-    max_year = bloom_history_df["year"].max()
-else:
-    max_year = df["year"].max()
+reference_year = 2026
 
-min_year_to_keep = max_year - selected_n_years + 1
+if not forecast_df.empty:
+    reference_year = int(forecast_df.loc[0, "forecast_year"])
+
+min_year_to_keep = reference_year - selected_n_years + 1
 
 if not bloom_history_df.empty:
     bloom_history_df = bloom_history_df[bloom_history_df["year"] >= min_year_to_keep]

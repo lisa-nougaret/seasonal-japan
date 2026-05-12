@@ -244,13 +244,13 @@ def plot_sakura_bloom_timeline(
             go.Scatter(
                 x=[forecast_year],
                 y=[forecast_doy],
-                mode="markers+text",
+                mode="markers",
                 name="Forecast",
                 marker=dict(
                     size=12,
                     color="#000000",
-                    symbol="circle",                ),
-                text=None,
+                    symbol="circle",
+                ),
                 hovertemplate=(
                     "<b>Forecast bloom date</b><br>"
                     f"{forecast_date.strftime('%d %b %Y')}<extra></extra>"
@@ -289,13 +289,17 @@ def plot_sakura_bloom_timeline(
         ),
     )
 
+    x_min = forecast_year - 19
+    x_max = forecast_year + 2
+
     fig.update_xaxes(
         title=None,
-        range=[df["year"].min(), forecast_year + 4],
+        range=[x_min, x_max],
+        tickmode="array",
+        tickvals=list(range(x_min, x_max + 1, 5)),
         showgrid=False,
         zeroline=False,
-        tickfont=dict(color="#6F6A76"),
-        tickmode="array",
+        tickfont=dict(color="#6F6A76", size=11),
     )
 
     y_tickvals = [70, 80, 90, 100]
@@ -306,7 +310,6 @@ def plot_sakura_bloom_timeline(
 
     fig.update_yaxes(
         title=None,
-        range=[68, 104],
         tickmode="array",
         tickvals=y_tickvals,
         ticktext=y_ticktext,
