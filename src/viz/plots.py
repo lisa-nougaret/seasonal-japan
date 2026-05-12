@@ -11,6 +11,7 @@ def plot_sakura_forecast_map(
 ):
     df = df.copy()
     df["station_code"] = df["station_code"].astype(str)
+
     min_val = df["predicted_day_of_year"].min()
     max_val = df["predicted_day_of_year"].max()
     tickvals = np.linspace(min_val, max_val, 3)
@@ -190,6 +191,129 @@ def plot_sakura_forecast_map(
                 size=14,
             ),
         ),
+    )
+
+    return fig
+
+def plot_sakura_bloom_timeline(
+    bloom_history_df: pd.DataFrame,
+    forecast_df: pd.DataFrame,
+):
+    fig = go.Figure()
+    df = bloom_history_df.copy()
+
+    def doy_to_label(day_of_year: int) -> str:
+        return pd.Timestamp("2026-01-01") + pd.Timedelta(days=int(day_of_year) - 1)
+
+    if not df.empty:
+        df["date_key"] = pd.to_datetime(df["date_key"])
+        df["year"] = df["year"].astype(int)
+        df["day_of_year"] = pd.to_numeric(df["day_of_year"], errors="coerce")
+        df = df.dropna(subset=["year", "day_of_year"]).sort_values("year")
+
+        df["bloom_date_label"] = (
+            pd.to_datetime(df["year"].astype(str), format="%Y")
+            + pd.to_timedelta(df["day_of_year"] - 1, unit="D")
+        ).dt.strftime("%d %b")
+
+        fig.add_trace(
+            go.Scatter(
+                x=df["year"],
+                y=df["day_of_year"],
+                mode="lines",
+                name="Historical bloom",
+                line=dict(color="#FF879F", width=2.2, shape="spline", smoothing=0.7),
+                customdata=df["bloom_date_label"],
+
+                hovertemplate=(
+                    "<b>%{x}</b><br>"
+                    "Bloom date: %{customdata}<extra></extra>"
+                ),
+            )
+        )
+
+    if not forecast_df.empty:
+        forecast = forecast_df.iloc[0]
+
+        forecast_year = int(forecast["forecast_year"])
+        forecast_doy = float(forecast["predicted_day_of_year"])
+        forecast_date = pd.to_datetime(forecast["predicted_event_date"])
+        forecast_label = forecast_date.strftime("%d %b")
+
+        fig.add_trace(
+            go.Scatter(
+                x=[forecast_year],
+                y=[forecast_doy],
+                mode="markers+text",
+                name="Forecast",
+                marker=dict(
+                    size=12,
+                    color="#000000",
+                    symbol="circle",                ),
+                text=None,
+                hovertemplate=(
+                    "<b>Forecast bloom date</b><br>"
+                    f"{forecast_date.strftime('%d %b %Y')}<extra></extra>"
+                ),
+            )
+        )
+
+        fig.add_annotation(
+            x=forecast_year,
+            y=forecast_doy,
+            text=f"<b>{forecast_label}</b>",
+            showarrow=False,
+            xshift=0,
+            yshift=18,
+            font=dict(
+                size=12, 
+                color="#000000",
+            ),
+        )
+
+    fig.update_layout(
+        height=305,
+        margin=dict(l=5, r=5, t=20, b=5),
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        font=dict(
+            family="Helvetica Neue, Helvetica, Arial, sans-serif",
+            color="#5B4D53",
+            size=12,
+        ),
+        showlegend=False,
+        hoverlabel=dict(
+            bgcolor="rgba(255,255,255,0.92)",
+            bordercolor="rgba(255,182,213,0.35)",
+            font=dict(color="#2F2930"),
+        ),
+    )
+
+    fig.update_xaxes(
+        title=None,
+        range=[df["year"].min(), forecast_year + 4],
+        showgrid=False,
+        zeroline=False,
+        tickfont=dict(color="#6F6A76"),
+        tickmode="array",
+    )
+
+    y_tickvals = [70, 80, 90, 100]
+    y_ticktext = [
+        doy_to_label(v).strftime("%d %b").lstrip("0")
+        for v in y_tickvals
+    ]
+
+    fig.update_yaxes(
+        title=None,
+        range=[68, 104],
+        tickmode="array",
+        tickvals=y_tickvals,
+        ticktext=y_ticktext,
+        showgrid=True,
+        gridcolor="rgba(255, 143, 189, 0.13)",
+        zeroline=False,
+        tickfont=dict(color="#6F6A76", size=11),
     )
 
     return fig
