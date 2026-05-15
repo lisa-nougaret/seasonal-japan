@@ -5,6 +5,10 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 
+SAKURA_LIGHT = "#E8B9C2"
+SAKURA_MEDIUM = "#EA9FAD"
+SAKURA_BRIGHT = "#EA5B75"
+
 def plot_sakura_forecast_map(
     df: pd.DataFrame, 
     selected_station_code: str | None = None,
@@ -222,7 +226,7 @@ def plot_sakura_bloom_timeline(
                 y=df["day_of_year"],
                 mode="lines",
                 name="Historical bloom",
-                line=dict(color="#FF879F", width=2.2, shape="spline", smoothing=0.7),
+                line=dict(color=SAKURA_MEDIUM, width=2.2, shape="spline", smoothing=0.7),
                 customdata=df["bloom_date_label"],
 
                 hovertemplate=(
@@ -284,7 +288,7 @@ def plot_sakura_bloom_timeline(
         showlegend=False,
         hoverlabel=dict(
             bgcolor="rgba(255,255,255,0.92)",
-            bordercolor="rgba(255,182,213,0.35)",
+            bordercolor="rgba(234, 159, 173, 0.35)",
             font=dict(color="#2F2930"),
         ),
     )
@@ -314,7 +318,7 @@ def plot_sakura_bloom_timeline(
         tickvals=y_tickvals,
         ticktext=y_ticktext,
         showgrid=True,
-        gridcolor="rgba(255, 143, 189, 0.13)",
+        gridcolor="rgba(234, 159, 173, 0.13)",
         zeroline=False,
         tickfont=dict(color="#6F6A76", size=11),
     )

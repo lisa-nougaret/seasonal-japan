@@ -23,6 +23,8 @@ from src.viz.plots import (
     plot_sakura_bloom_timeline,
 )
 
+from src.viz.cards import render_best_time_to_visit_card
+
 def add_floating_petals(image_path: str):
     with open(image_path, "rb") as f:
         encoded = base64.b64encode(f.read()).decode()
@@ -85,6 +87,13 @@ add_floating_petals("dashboards/assets/sakura_petal.png")
 st.markdown(
     """
 <style>
+
+:root {
+    --sakura-light: #E8B9C2;
+    --sakura-medium: #EA9FAD;
+    --sakura-bright: #EA5B75;
+}
+
 html, body, [class*="css"]  {
     font-weight: 300 !important;
     letter-spacing: 0.2px;
@@ -138,12 +147,13 @@ html, body, [class*="css"]  {
 .st-key-highlights_card,
 .st-key-spots_card {
     background: rgba(255, 255, 255, 0.72);
-    border: 1px solid rgba(255, 182, 213, 0.26);
+    border: 1px solid rgba(232, 185, 194, 0.32);
     border-radius: 22px;
     padding: 22px 24px;
-    min-height: 420px;
+    height: 420px;
     box-shadow: 0 14px 35px rgba(120, 86, 110, 0.08);
     backdrop-filter: blur(12px);
+    overflow: hidden;
 }
 
 .st-key-timeline_card h3,
@@ -173,6 +183,242 @@ label {
 [data-testid="stMetricLabel"] {
     font-weight: 300;
 }
+
+.best-visit-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    color: #171219;
+}
+
+.best-visit-card h3 {
+    font-size: 1.02rem;
+    font-weight: 800;
+    color: #171219;
+    margin: 0 0 1rem 0;
+}
+
+.best-visit-subtitle {
+    color: #7d7784;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    margin: 0 0 1.15rem 0;
+}
+
+.visit-timeline-labels {
+    position: relative;
+    height: 34px;
+    margin-top: 0.1rem;
+}
+
+.timeline-label {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    text-align: center;
+}
+
+.timeline-label span {
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: var(--sakura-medium);
+    white-space: nowrap;
+}
+
+# .label-first {
+    left: 12%;
+}
+
+.label-peak {
+    left: 46%;
+}
+
+.label-best {
+    left: 78%;
+}
+
+.dotted-line {
+    width: 1px;
+    height: 21px;
+    margin: 5px auto 0 auto;
+    background-image: linear-gradient(
+        to bottom,
+        rgba(234, 159, 173, 0.72) 45%,
+        rgba(234, 159, 173, 0) 0%
+    );
+    background-size: 1px 7px;
+    background-repeat: repeat-y;
+}
+
+.visit-timeline-wrap {
+    position: relative;
+    height: 42px;
+    margin-top: 0.1rem;
+}
+
+.timeline-pale-track {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 13px;
+    height: 22px;
+    border-radius: 999px;
+    background: rgba(232, 185, 194, 0.45);
+}
+
+.timeline-visit-window {
+    position: absolute;
+    left: 25%;
+    right: 10%;
+    top: 13px;
+    height: 22px;
+    border-radius: 999px;
+    background: rgba(234, 159, 173, 0.62);
+}
+
+.timeline-peak-window {
+    position: absolute;
+    left: 35%;
+    right: 38%;
+    top: 17px;
+    height: 14px;
+    border-radius: 999px;
+    background: var(--sakura-bright);
+}
+
+.timeline-dot {
+    position: absolute;
+    top: 10px;
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: var(--sakura-medium);
+    transform: translateX(-50%);
+    z-index: 5;
+}
+
+.dot-first {
+    left: 25%;
+}
+
+.dot-peak {
+    left: 46%;
+}
+
+.dot-best {
+    left: 78%;
+}
+
+.timeline-axis {
+    position: relative;
+    height: 52px;
+    margin: 0.45rem 0 0.8rem 0;
+}
+
+.axis-line {
+    position: absolute;
+    top: 10px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: rgba(232, 185, 194, 0.50);
+}
+
+.axis-tick {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    text-align: center;
+}
+
+.tick-one {
+    left: 12%;
+}
+
+.tick-two {
+    left: 38%;
+}
+
+.tick-three {
+    left: 64%;
+}
+
+.tick-four {
+    left: 92%;
+}
+
+.tick-mark {
+    width: 1px;
+    height: 17px;
+    margin: 0 auto 7px auto;
+    background: rgba(145, 151, 160, 0.55);
+}
+
+.tick-date {
+    font-size: 0.76rem;
+    line-height: 1.18;
+    font-weight: 700;
+    color: #5B4D53;
+}
+
+.visit-detail-section {
+    margin-top: 0.2rem;
+}
+
+.visit-detail-row {
+    display: grid;
+    grid-template-columns: 10px minmax(0, 1fr);
+    gap: 0.65rem;
+    align-items: start;
+    padding: 0.25rem 0;
+}
+
+.visit-detail-dot {
+    width: 8px;
+    height: 8px;
+    margin-top: 0.45rem;
+    border-radius: 999px;
+    background: var(--sakura-light);
+}
+
+.visit-detail-dot.medium {
+    background: var(--sakura-medium);
+}
+
+.visit-detail-dot.bright {
+    background: var(--sakura-bright);
+}
+
+.visit-detail-label {
+    font-size: 0.8rem;
+    color: #7d7784;
+    font-weight: 500;
+    margin-bottom: 0.2rem;
+}
+
+.visit-detail-value {
+    font-size: 0.9rem;
+    line-height: 1.25;
+    color: #171219;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.visit-row-line {
+    height: 1px;
+    background: rgba(232, 185, 194, 0.45);
+    margin: 0.4rem 0;
+}
+
+.forecast-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--sakura-light);
+    display: inline-block;
+    flex-shrink: 0;
+}
+
 </style>
 """,
     unsafe_allow_html=True,
@@ -213,9 +459,10 @@ with hero_left:
         <div class="hero-block">
             <h1>When Will Sakura<br>Bloom in Japan?</h1>
             <p>
-                Explore forecasted sakura bloom dates<br>
-                across Japan, along with historical<br>
-                temperature patterns.
+                Plan your perfect trip across Japan with<br>
+                bloom forecasts, peak viewing windows,<br>
+                local highlights, and top spots to admire<br>
+                the fleeting beauty of cherry blossoms.
             </p>
         </div>
         """, 
@@ -327,7 +574,7 @@ lower_col1, lower_col2, lower_col3, lower_col4 = st.columns([1.5, 1, 1, 1])
 
 with lower_col1:
     with st.container(key="timeline_card"):
-        st.markdown(f"### Sakura Bloom Timeline • {selected_name.title()}")
+        st.markdown(f"### Sakura first bloom date • {selected_name.title()}")
 
         fig_timeline = plot_sakura_bloom_timeline(
             bloom_history_df,
@@ -342,10 +589,11 @@ with lower_col1:
 
 with lower_col2:
     with st.container(key="visit_card"):
-        st.markdown(f"### Best Time to Visit {selected_name.title()}")
-        st.markdown(
-            '<p class="muted-text">Coming next...</p>', 
-            unsafe_allow_html=True,
+        st.html(
+            render_best_time_to_visit_card(
+                station_name=selected_name,
+                forecast_df=forecast_df,
+            )
         )
 
 with lower_col3:
