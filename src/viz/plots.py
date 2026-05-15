@@ -161,7 +161,7 @@ def plot_sakura_forecast_map(
             )
 
     fig.update_layout(
-        height=430,
+        height=400,
         margin=dict(l=0, r=0, t=70, b=0),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
@@ -272,7 +272,7 @@ def plot_sakura_bloom_timeline(
         )
 
     fig.update_layout(
-        height=305,
+        height=400,
         margin=dict(l=5, r=5, t=20, b=5),
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",
