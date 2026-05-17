@@ -5,11 +5,12 @@ from src.db.db import get_engine
 BASE_DIR = Path(__file__).resolve().parents[1]
 
 SQL_CHECK_FILES = [
+    BASE_DIR / "sql" / "checks" / "check_dim_station.sql",
     BASE_DIR / "sql" / "checks" / "check_fact_monthly_climate.sql",
     BASE_DIR / "sql" / "checks" / "check_fact_sakura_events.sql",
+    BASE_DIR / "sql" / "checks" / "check_fact_sakura_forecast.sql",
     BASE_DIR / "sql" / "checks" / "check_sakura_raw.sql",
     BASE_DIR / "sql" / "checks" / "check_sakura_training_features.sql",
-    BASE_DIR / "sql" / "checks" / "check_sakura_prediction_features.sql",
 ]
 
 def run_checks():
