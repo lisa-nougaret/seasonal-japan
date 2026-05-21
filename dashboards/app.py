@@ -150,10 +150,14 @@ html, body, [class*="css"]  {
     border: 1px solid rgba(232, 185, 194, 0.32);
     border-radius: 22px;
     padding: 22px 24px;
-    height: 420px;
+    min-height: 420px;
+    box-sizing: border-box;
     box-shadow: 0 14px 35px rgba(120, 86, 110, 0.08);
     backdrop-filter: blur(12px);
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
 }
 
 .st-key-timeline_card h3,
@@ -189,6 +193,7 @@ label {
     display: flex;
     flex-direction: column;
     color: #171219;
+    justify-content: space-between;
 }
 
 .best-visit-card h3 {
@@ -225,16 +230,16 @@ label {
     white-space: nowrap;
 }
 
-# .label-first {
+/* .label-first {
     left: 12%;
-}
+} */
 
 .label-peak {
     left: 46%;
 }
 
 .label-best {
-    left: 78%;
+    left: 74%;
 }
 
 .dotted-line {
@@ -362,7 +367,7 @@ label {
 }
 
 .visit-detail-section {
-    margin-top: 0.2rem;
+    margin-top: auto;
 }
 
 .visit-detail-row {
@@ -408,6 +413,15 @@ label {
     height: 1px;
     background: rgba(232, 185, 194, 0.45);
     margin: 0.4rem 0;
+}
+
+div[data-testid="column"] {
+    display: flex;
+    align-self: stretch;
+}
+
+div[data-testid="column"] > div {
+    width: 100%;
 }
 
 .forecast-dot {
@@ -570,7 +584,7 @@ model_label_map = {
 
 # Bottom section
 
-lower_col1, lower_col2, lower_col3, lower_col4 = st.columns([1.5, 1, 1, 1])
+lower_col1, lower_col2, lower_col3, lower_col4 = st.columns([1, 1, 1, 1])
 
 with lower_col1:
     with st.container(key="timeline_card"):

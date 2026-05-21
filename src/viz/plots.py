@@ -276,8 +276,8 @@ def plot_sakura_bloom_timeline(
         )
 
     fig.update_layout(
-        height=400,
-        margin=dict(l=5, r=5, t=20, b=5),
+        height=280,
+        margin=dict(l=0, r=0, t=10, b=0),
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",
         font=dict(
