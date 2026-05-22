@@ -167,7 +167,10 @@ html, body, [class*="css"]  {
     font-size: 1.02rem;
     font-weight: 800;
     color: #171219;
+    margin-top: 0!important;
+    padding-top: 0!important;
     margin-bottom: 0.8rem;
+    line-height: 1.2;
 }
 
 .muted-text {
@@ -200,7 +203,10 @@ label {
     font-size: 1.02rem;
     font-weight: 800;
     color: #171219;
-    margin: 0 0 1rem 0;
+    margin: 0 !important;
+    padding: 0 !important;
+    margin-bottom: 0.8rem !important;
+    line-height: 1.2;
 }
 
 .best-visit-subtitle {
