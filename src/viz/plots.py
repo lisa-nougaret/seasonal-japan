@@ -226,7 +226,7 @@ def plot_sakura_bloom_timeline(
                 y=df["day_of_year"],
                 mode="lines",
                 name="Historical bloom",
-                line=dict(color=SAKURA_MEDIUM, width=2.2, shape="spline", smoothing=0.7),
+                line=dict(color=SAKURA_LIGHT, width=2.2, shape="spline", smoothing=0.7),
                 customdata=df["bloom_date_label"],
 
                 hovertemplate=(
