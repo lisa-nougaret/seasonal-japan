@@ -60,7 +60,7 @@ def render_best_time_to_visit_card(
         return textwrap.dedent(
             f"""
             <div class="best-visit-card">
-                <h3>Best time to visit {station_name.title()}</h3>
+                <h3>Best Time to Visit</h3>
                 <p class="best-visit-subtitle">
                     No forecast available for this station.
                 </p>
@@ -87,7 +87,7 @@ def render_best_time_to_visit_card(
         f"""
         <div class="best-visit-card">
 
-            <h3>Best time to visit {station_name.title()}</h3>
+            <h3>Best Time to Visit</h3>
 
             <div class="visit-timeline-labels">
                 <div class="timeline-label label-first">

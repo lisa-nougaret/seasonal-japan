@@ -624,7 +624,7 @@ lower_col1, lower_col2, lower_col3, lower_col4 = st.columns([1, 1, 1, 1])
 
 with lower_col1:
     with st.container(key="timeline_card"):
-        st.markdown(f"### Sakura first bloom date • {selected_name.title()}")
+        st.markdown(f"### Through the Years")
 
         fig_timeline = plot_sakura_bloom_timeline(
             bloom_history_df,
@@ -648,7 +648,7 @@ with lower_col2:
 
 with lower_col3:
     with st.container(key="highlights_card"):
-        st.markdown(f"### Spring Highlights in {selected_name.title()}")
+        st.markdown(f"### Local Spring Traditions")
         st.markdown(
             '<p class="muted-text">Coming next...</p>', 
             unsafe_allow_html=True,
@@ -656,7 +656,7 @@ with lower_col3:
 
 with lower_col4:
     with st.container(key="spots_card"):
-        st.markdown("### Top Nearby Spots")
+        st.markdown("### Nearby Gems")
         st.markdown(
             '<p class="muted-text">Coming next...</p>', 
             unsafe_allow_html=True,
