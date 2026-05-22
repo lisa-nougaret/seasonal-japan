@@ -212,47 +212,81 @@ label {
 
 .visit-timeline-labels {
     position: relative;
-    height: 34px;
+    height: 40px;
     margin-top: 0.1rem;
 }
 
 .timeline-label {
     position: absolute;
-    top: 0;
+    top: 2px;
     transform: translateX(-50%);
     text-align: center;
 }
 
 .timeline-label span {
-    font-size: 0.68rem;
-    font-weight: 800;
-    color: var(--sakura-medium);
+    font-size: 0.70rem;
+    line-height: 1;
+    font-weight: 300;
     white-space: nowrap;
+    display: block;
+    text-align: center
 }
 
-/* .label-first {
-    left: 12%;
-} */
+.label-first {
+    left: 25%;
+}
 
 .label-peak {
-    left: 46%;
+    left: 50%;
 }
 
 .label-best {
-    left: 74%;
+    left: 75%;
+}
+
+.label-first span {
+    color: var(--sakura-light);
+}
+
+.label-peak span {
+    color: var(--sakura-bright);
+}
+
+.label-best span {
+    color: var(--sakura-medium);
 }
 
 .dotted-line {
     width: 1px;
-    height: 21px;
-    margin: 5px auto 0 auto;
-    background-image: linear-gradient(
-        to bottom,
-        rgba(234, 159, 173, 0.72) 45%,
-        rgba(234, 159, 173, 0) 0%
-    );
+    height: 18px;
+    margin: 4px auto 0 auto;
     background-size: 1px 7px;
     background-repeat: repeat-y;
+    opacity: 0.7;
+}
+
+.label-first .dotted-line {
+    background-image: linear-gradient(
+        to bottom,
+        var(--sakura-light) 45%,
+        rgba(255,255,255,0) 0%
+    );
+}
+
+.label-peak .dotted-line {
+    background-image: linear-gradient(
+        to bottom,
+        var(--sakura-bright) 45%,
+        rgba(255,255,255,0) 0%
+    );
+}
+
+.label-best .dotted-line {
+    background-image: linear-gradient(
+        to bottom,
+        var(--sakura-medium) 45%,
+        rgba(255,255,255,0) 0%
+    );
 }
 
 .visit-timeline-wrap {
@@ -297,21 +331,23 @@ label {
     width: 7px;
     height: 7px;
     border-radius: 999px;
-    background: var(--sakura-medium);
     transform: translateX(-50%);
     z-index: 5;
 }
 
 .dot-first {
     left: 25%;
+    background: var(--sakura-light);
 }
 
 .dot-peak {
-    left: 46%;
+    left: 50%;
+    background: var(--sakura-bright);
 }
 
 .dot-best {
-    left: 78%;
+    left: 75%;
+    background: var(--sakura-medium);
 }
 
 .timeline-axis {

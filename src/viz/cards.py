@@ -91,17 +91,26 @@ def render_best_time_to_visit_card(
 
             <div class="visit-timeline-labels">
                 <div class="timeline-label label-first">
-                    <span>First bloom</span>
+                    <span>
+                        First<br>
+                        bloom
+                    </span>
                     <div class="dotted-line"></div>
                 </div>
 
                 <div class="timeline-label label-peak">
-                    <span>Peak bloom</span>
+                    <span>
+                        Peak<br>
+                        bloom
+                    </span>
                     <div class="dotted-line"></div>
                 </div>
 
                 <div class="timeline-label label-best">
-                    <span>Best time to visit</span>
+                    <span>
+                        Best time<br>
+                        to visit
+                    </span>
                     <div class="dotted-line"></div>
                 </div>
             </div>
