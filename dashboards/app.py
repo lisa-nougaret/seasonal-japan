@@ -88,6 +88,18 @@ st.markdown(
     """
 <style>
 
+html, body, [data-testid="stAppViewContainer"] {
+    background-color: #EBE7E3 !important;
+}
+
+section.main {
+    background-color: #EBE7E3 !important;
+}
+
+[data-testid="stHeader"] {
+    background: transparent;
+}
+
 :root {
     --sakura-light: #E8B9C2;
     --sakura-medium: #EA9FAD;
