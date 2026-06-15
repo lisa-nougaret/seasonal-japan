@@ -42,16 +42,16 @@ def plot_sakura_forecast_map(
 
     fig = go.Figure()
 
-    # Japan silhouette
+    # Japan silhouette — luminous outline on dark background
     fig.add_trace(
         go.Choropleth(
             geojson=japan_geojson,
             locations=["JPN"],
             z=[1],
             featureidkey="id",
-            colorscale=[[0, "rgba(255,255,255,0.65)"], [1, "rgba(255,255,255,0.65)"]],
-            marker_line_color="rgba(130, 110, 120, 0.45)",
-            marker_line_width=1.1,
+            colorscale=[[0, "rgba(255,168,192,0.04)"], [1, "rgba(255,168,192,0.04)"]],
+            marker_line_color="rgba(255,168,192,0.45)",
+            marker_line_width=1.0,
             showscale=False,
             hoverinfo="skip",
             showlegend=False,
@@ -76,8 +76,8 @@ def plot_sakura_forecast_map(
                 ]
             ],
             marker=dict(
-                size=15,
-                opacity=0.90,
+                size=13,
+                opacity=0.92,
                 color=df["predicted_day_of_year"],
                 colorscale=colorscale,
                 cmin=min_val,
@@ -85,24 +85,24 @@ def plot_sakura_forecast_map(
                 line=dict(width=0),
                 colorbar=dict(
                     orientation="h",
-                    thickness=12,
+                    thickness=8,
                     len=0.16,
                     x=0.73,
                     xanchor="center",
-                    y=0.10,
+                    y=0.04,
                     yanchor="bottom",
                     outlinewidth=0,
                     tickmode="array",
                     tickvals=tickvals,
                     ticktext=["early", "mid", "late"],
-                    tickfont=dict(color="#000000", size=10),
+                    tickfont=dict(color="rgba(255,255,255,0.45)", size=9, family="IBM Plex Mono"),
                     ticks="",
                 ),
             ),
             hovertemplate=(
-                "<span style='font-size:18px; font-weight:400;'>%{text}</span><br>"
-                "<span style='font-size:14px;'>%{customdata[2]}</span><br>"
-                "<span style='font-size:12px; color:#777;'>%{customdata[3]}</span>"
+                "<span style='font-size:16px;font-weight:500;color:#fff;'>%{text}</span><br>"
+                "<span style='font-size:13px;color:#ff8fa9;'>%{customdata[2]}</span><br>"
+                "<span style='font-size:11px;color:#9a93a6;'>%{customdata[3]}</span>"
                 "<extra></extra>"
             ),
             showlegend=False,
@@ -142,20 +142,20 @@ def plot_sakura_forecast_map(
                     ],
                     textposition=text_position,
                     textfont=dict(
-                        size=14,
-                        color="#050505",
-                        family="Arial, sans-serif",
+                        size=13,
+                        color="rgba(255,255,255,0.85)",
+                        family="Schibsted Grotesk, sans-serif",
                     ),
                     marker=dict(
-                        size=15,
+                        size=17,
                         opacity=1,
                         color=[selected["predicted_day_of_year"]],
                         colorscale=colorscale,
                         cmin=min_val,
                         cmax=max_val,
                         line=dict(
-                            width=1.2,
-                            color="rgba(0, 0, 0, 0.75)",
+                            width=2,
+                            color="rgba(255, 255, 255, 0.8)",
                         ),
                         showscale=False,
                     ),
@@ -165,8 +165,8 @@ def plot_sakura_forecast_map(
             )
 
     fig.update_layout(
-        height=400,
-        margin=dict(l=0, r=0, t=70, b=0),
+        height=430,
+        margin=dict(l=0, r=0, t=20, b=0),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         dragmode=False,
@@ -187,12 +187,12 @@ def plot_sakura_forecast_map(
             lataxis=dict(range=[23, 47]),
         ),
         hoverlabel=dict(
-            bgcolor="rgba(255, 255, 255, 0.85)",
-            bordercolor="rgba(200, 200, 200, 0)",
+            bgcolor="rgba(25,18,38,0.92)",
+            bordercolor="rgba(255,143,169,0.3)",
             font=dict(
-                color="#000000",
-                family="Arial, sans-serif",
-                size=14,
+                color="#ffffff",
+                family="Schibsted Grotesk, sans-serif",
+                size=13,
             ),
         ),
     )
@@ -226,16 +226,16 @@ def plot_sakura_bloom_timeline(
                 y=df["day_of_year"],
                 mode="lines",
                 name="Historical bloom",
-                line=dict(color=SAKURA_LIGHT, width=2.2, shape="spline", smoothing=0.7),
+                line=dict(color="#ff8fa9", width=2, shape="spline", smoothing=0.7),
                 customdata=df["bloom_date_label"],
-
                 hovertemplate=(
-                    "<b>%{x}</b><br>"
-                    "Bloom date: %{customdata}<extra></extra>"
+                    "<span style='color:#fff;font-weight:500;'>%{x}</span><br>"
+                    "<span style='color:#ff8fa9;'>%{customdata}</span><extra></extra>"
                 ),
             )
         )
 
+    forecast_year = 2026
     if not forecast_df.empty:
         forecast = forecast_df.iloc[0]
 
@@ -251,13 +251,14 @@ def plot_sakura_bloom_timeline(
                 mode="markers",
                 name="Forecast",
                 marker=dict(
-                    size=12,
-                    color="#000000",
+                    size=13,
+                    color="#ffffff",
                     symbol="circle",
+                    line=dict(color="#ff8fa9", width=0),
                 ),
                 hovertemplate=(
-                    "<b>Forecast bloom date</b><br>"
-                    f"{forecast_date.strftime('%d %b %Y')}<extra></extra>"
+                    "<span style='color:#fff;font-weight:500;'>Forecast</span><br>"
+                    f"<span style='color:#ff8fa9;'>{forecast_date.strftime('%d %b %Y')}</span><extra></extra>"
                 ),
             )
         )
@@ -269,27 +270,24 @@ def plot_sakura_bloom_timeline(
             showarrow=False,
             xshift=0,
             yshift=18,
-            font=dict(
-                size=12, 
-                color="#000000",
-            ),
+            font=dict(size=11, color="#f6f1f4", family="IBM Plex Mono, monospace"),
         )
 
     fig.update_layout(
-        height=280,
+        height=200,
         margin=dict(l=0, r=0, t=10, b=0),
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",
         font=dict(
-            family="Helvetica Neue, Helvetica, Arial, sans-serif",
-            color="#5B4D53",
-            size=12,
+            family="IBM Plex Mono, monospace",
+            color="#6f6a80",
+            size=10,
         ),
         showlegend=False,
         hoverlabel=dict(
-            bgcolor="rgba(255,255,255,0.92)",
-            bordercolor="rgba(234, 159, 173, 0.35)",
-            font=dict(color="#2F2930"),
+            bgcolor="rgba(25,18,38,0.92)",
+            bordercolor="rgba(255,143,169,0.3)",
+            font=dict(color="#ffffff", family="Schibsted Grotesk, sans-serif"),
         ),
     )
 
@@ -303,7 +301,7 @@ def plot_sakura_bloom_timeline(
         tickvals=list(range(x_min, x_max + 1, 5)),
         showgrid=False,
         zeroline=False,
-        tickfont=dict(color="#6F6A76", size=11),
+        tickfont=dict(color="#6f6a80", size=10),
     )
 
     y_tickvals = [70, 80, 90, 100]
@@ -318,9 +316,9 @@ def plot_sakura_bloom_timeline(
         tickvals=y_tickvals,
         ticktext=y_ticktext,
         showgrid=True,
-        gridcolor="rgba(234, 159, 173, 0.13)",
+        gridcolor="rgba(255,255,255,.05)",
         zeroline=False,
-        tickfont=dict(color="#6F6A76", size=11),
+        tickfont=dict(color="#6f6a80", size=10),
     )
 
     return fig

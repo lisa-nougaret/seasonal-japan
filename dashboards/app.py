@@ -23,7 +23,7 @@ from src.viz.plots import (
     plot_sakura_bloom_timeline,
 )
 
-from src.viz.cards import render_best_time_to_visit_card
+from src.viz.cards import render_forecast_section
 
 def add_floating_petals(image_path: str):
     with open(image_path, "rb") as f:
@@ -87,56 +87,40 @@ add_floating_petals("dashboards/assets/sakura_petal.png")
 st.markdown(
     """
 <style>
-
-html, body, [data-testid="stAppViewContainer"] {
-    background-color: #EBE7E3 !important;
-}
-
-section.main {
-    background-color: #EBE7E3 !important;
-}
-
-[data-testid="stHeader"] {
-    background: transparent;
-}
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Schibsted+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500;600&family=Shippori+Mincho:wght@400;500;600;700&display=swap');
 
 :root {
-    --sakura-light: #E8B9C2;
-    --sakura-medium: #EA9FAD;
-    --sakura-bright: #EA5B75;
+    --bg:          #15131b;
+    --bg-card:     #1d1622;
+    --bg-card-alt: #181420;
+    --border:      rgba(255,255,255,.08);
+    --pink:        #ff8fa9;
+    --pink-muted:  #e69bb4;
+    --text:        #f6f1f4;
+    --text-muted:  #b1aabf;
+    --text-dim:    #948fa0;
+    --text-faint:  #6f6a80;
+    --mono:        'IBM Plex Mono', monospace;
+    --serif:       'Newsreader', serif;
+    --jp:          'Shippori Mincho', serif;
+    --sans:        'Schibsted Grotesk', sans-serif;
 }
 
-html, body, [class*="css"]  {
-    font-weight: 300 !important;
-    letter-spacing: 0.2px;
-    color: #5B4D53;
+html, body,
+[data-testid="stAppViewContainer"],
+[data-testid="stApp"],
+section.main {
+    background-color: var(--bg) !important;
+    font-family: var(--sans) !important;
+    color: var(--text) !important;
 }
+
+[data-testid="stHeader"] { background: transparent; }
 
 .block-container {
     max-width: 100% !important;
     padding-left: 3rem !important;
     padding-right: 3rem !important;
-}
-
-.hero-block {
-    padding-top: 5rem;
-    padding-left: 0.5rem;
-}
-
-.hero-block h1 {
-    font-size: 2.6rem;
-    line-height: 1.05;
-    font-weight: 800;
-    letter-spacing: 0px;
-    color: #050505;
-    margin-bottom: 1.4rem;
-}
-
-.hero-block p {
-    font-size: 0.95rem;
-    line-height: 1.45;
-    color: #777;
-    margin-bottom: 2rem;
 }
 
 [data-testid="stPlotlyChart"] {
@@ -154,18 +138,24 @@ html, body, [class*="css"]  {
     background: transparent !important;
 }
 
+div[data-testid="column"] {
+    display: flex;
+    align-self: stretch;
+}
+
+div[data-testid="column"] > div { width: 100%; }
+
+/* ── Cards ────────────────────────────────────────────── */
 .st-key-timeline_card,
 .st-key-visit_card,
 .st-key-highlights_card,
 .st-key-spots_card {
-    background: rgba(255, 255, 255, 0.72);
-    border: 1px solid rgba(232, 185, 194, 0.32);
-    border-radius: 22px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
     padding: 22px 24px;
-    min-height: 420px;
+    min-height: 380px;
     box-sizing: border-box;
-    box-shadow: 0 14px 35px rgba(120, 86, 110, 0.08);
-    backdrop-filter: blur(12px);
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -176,56 +166,45 @@ html, body, [class*="css"]  {
 .st-key-visit_card h3,
 .st-key-highlights_card h3,
 .st-key-spots_card h3 {
-    font-size: 1.02rem;
-    font-weight: 800;
-    color: #171219;
-    margin-top: 0!important;
-    padding-top: 0!important;
-    margin-bottom: 0.8rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    margin-bottom: 0.7rem;
     line-height: 1.2;
 }
 
 .muted-text {
-    color: #7d7784;
+    color: var(--text-dim);
     font-size: 0.9rem;
     line-height: 1.5;
 }
 
-label {
-    font-weight: 300;
-}
-
-[data-testid="stMetricValue"] {
-    font-weight: 300;
-}
-
-[data-testid="stMetricLabel"] {
-    font-weight: 300;
-}
-
+/* ── Best-time-to-visit card ────────────────────────── */
 .best-visit-card {
     height: 100%;
     display: flex;
     flex-direction: column;
-    color: #171219;
+    color: var(--text);
     justify-content: space-between;
 }
 
 .best-visit-card h3 {
-    font-size: 1.02rem;
-    font-weight: 800;
-    color: #171219;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
     margin: 0 !important;
     padding: 0 !important;
-    margin-bottom: 0.8rem !important;
+    margin-bottom: 0.7rem !important;
     line-height: 1.2;
 }
 
 .best-visit-subtitle {
-    color: #7d7784;
+    color: var(--text-dim);
     font-size: 0.9rem;
     line-height: 1.45;
-    margin: 0 0 1.15rem 0;
+    margin: 0 0 1rem 0;
 }
 
 .visit-timeline-labels {
@@ -244,35 +223,20 @@ label {
 .timeline-label span {
     font-size: 0.70rem;
     line-height: 1;
-    font-weight: 300;
+    font-weight: 400;
     white-space: nowrap;
     display: block;
-    text-align: center
+    text-align: center;
+    color: var(--text-muted);
 }
 
-.label-first {
-    left: 25%;
-}
+.label-first  { left: 25%; }
+.label-peak   { left: 50%; }
+.label-best   { left: 75%; }
 
-.label-peak {
-    left: 50%;
-}
-
-.label-best {
-    left: 75%;
-}
-
-.label-first span {
-    color: var(--sakura-light);
-}
-
-.label-peak span {
-    color: var(--sakura-bright);
-}
-
-.label-best span {
-    color: var(--sakura-medium);
-}
+.label-first span  { color: #8FC89A; }
+.label-peak span   { color: var(--pink); }
+.label-best span   { color: var(--text-muted); }
 
 .dotted-line {
     width: 1px;
@@ -280,32 +244,12 @@ label {
     margin: 4px auto 0 auto;
     background-size: 1px 7px;
     background-repeat: repeat-y;
-    opacity: 0.7;
+    opacity: 0.6;
 }
 
-.label-first .dotted-line {
-    background-image: linear-gradient(
-        to bottom,
-        var(--sakura-light) 45%,
-        rgba(255,255,255,0) 0%
-    );
-}
-
-.label-peak .dotted-line {
-    background-image: linear-gradient(
-        to bottom,
-        var(--sakura-bright) 45%,
-        rgba(255,255,255,0) 0%
-    );
-}
-
-.label-best .dotted-line {
-    background-image: linear-gradient(
-        to bottom,
-        var(--sakura-medium) 45%,
-        rgba(255,255,255,0) 0%
-    );
-}
+.label-first .dotted-line { background-image: linear-gradient(to bottom, #8FC89A 45%, transparent 0%); }
+.label-peak  .dotted-line { background-image: linear-gradient(to bottom, var(--pink) 45%, transparent 0%); }
+.label-best  .dotted-line { background-image: linear-gradient(to bottom, var(--text-muted) 45%, transparent 0%); }
 
 .visit-timeline-wrap {
     position: relative;
@@ -315,58 +259,41 @@ label {
 
 .timeline-pale-track {
     position: absolute;
-    left: 0;
-    right: 0;
-    top: 13px;
+    left: 0; right: 0; top: 13px;
     height: 22px;
     border-radius: 999px;
-    background: rgba(232, 185, 194, 0.45);
+    background: rgba(255,255,255,.07);
 }
 
 .timeline-visit-window {
     position: absolute;
-    left: 25%;
-    right: 10%;
-    top: 13px;
+    left: 25%; right: 10%; top: 13px;
     height: 22px;
     border-radius: 999px;
-    background: rgba(234, 159, 173, 0.62);
+    background: rgba(255,143,169,.18);
 }
 
 .timeline-peak-window {
     position: absolute;
-    left: 35%;
-    right: 38%;
-    top: 17px;
+    left: 35%; right: 38%; top: 17px;
     height: 14px;
     border-radius: 999px;
-    background: var(--sakura-bright);
+    background: var(--pink);
+    box-shadow: 0 0 12px rgba(255,143,169,.6);
 }
 
 .timeline-dot {
     position: absolute;
     top: 10px;
-    width: 7px;
-    height: 7px;
+    width: 7px; height: 7px;
     border-radius: 999px;
     transform: translateX(-50%);
     z-index: 5;
 }
 
-.dot-first {
-    left: 25%;
-    background: var(--sakura-light);
-}
-
-.dot-peak {
-    left: 50%;
-    background: var(--sakura-bright);
-}
-
-.dot-best {
-    left: 75%;
-    background: var(--sakura-medium);
-}
+.dot-first { left: 25%; background: #8FC89A; }
+.dot-peak  { left: 50%; background: var(--pink); box-shadow: 0 0 8px var(--pink); }
+.dot-best  { left: 75%; background: var(--text-muted); }
 
 .timeline-axis {
     position: relative;
@@ -376,11 +303,9 @@ label {
 
 .axis-line {
     position: absolute;
-    top: 10px;
-    left: 0;
-    right: 0;
+    top: 10px; left: 0; right: 0;
     height: 1px;
-    background: rgba(232, 185, 194, 0.50);
+    background: rgba(255,255,255,.12);
 }
 
 .axis-tick {
@@ -390,101 +315,67 @@ label {
     text-align: center;
 }
 
-.tick-one {
-    left: 12%;
-}
-
-.tick-two {
-    left: 38%;
-}
-
-.tick-three {
-    left: 64%;
-}
-
-.tick-four {
-    left: 92%;
-}
+.tick-one   { left: 12%; }
+.tick-two   { left: 38%; }
+.tick-three { left: 64%; }
+.tick-four  { left: 92%; }
 
 .tick-mark {
-    width: 1px;
-    height: 17px;
+    width: 1px; height: 17px;
     margin: 0 auto 7px auto;
-    background: rgba(145, 151, 160, 0.55);
+    background: rgba(255,255,255,.2);
 }
 
 .tick-date {
-    font-size: 0.76rem;
+    font-size: 0.72rem;
     line-height: 1.18;
-    font-weight: 700;
-    color: #5B4D53;
+    font-weight: 500;
+    color: var(--text-dim);
+    font-family: var(--mono);
 }
 
-.visit-detail-section {
-    margin-top: auto;
-}
+.visit-detail-section { margin-top: auto; }
 
 .visit-detail-row {
     display: grid;
-    grid-template-columns: 10px minmax(0, 1fr);
+    grid-template-columns: 10px minmax(0,1fr);
     gap: 0.65rem;
     align-items: start;
     padding: 0.25rem 0;
 }
 
 .visit-detail-dot {
-    width: 8px;
-    height: 8px;
+    width: 8px; height: 8px;
     margin-top: 0.45rem;
     border-radius: 999px;
-    background: var(--sakura-light);
+    background: #8FC89A;
 }
 
-.visit-detail-dot.medium {
-    background: var(--sakura-medium);
-}
-
-.visit-detail-dot.bright {
-    background: var(--sakura-bright);
-}
+.visit-detail-dot.medium { background: var(--text-muted); }
+.visit-detail-dot.bright { background: var(--pink); box-shadow: 0 0 8px var(--pink); }
 
 .visit-detail-label {
-    font-size: 0.8rem;
-    color: #7d7784;
+    font-size: 0.75rem;
+    color: var(--text-dim);
     font-weight: 500;
     margin-bottom: 0.2rem;
+    font-family: var(--mono);
+    letter-spacing: 0.5px;
 }
 
 .visit-detail-value {
-    font-size: 0.9rem;
+    font-size: 1rem;
     line-height: 1.25;
-    color: #171219;
-    font-weight: 800;
+    color: var(--text);
+    font-weight: 300;
+    font-family: var(--serif);
     white-space: nowrap;
 }
 
 .visit-row-line {
     height: 1px;
-    background: rgba(232, 185, 194, 0.45);
+    background: var(--border);
     margin: 0.4rem 0;
-}
-
-div[data-testid="column"] {
-    display: flex;
-    align-self: stretch;
-}
-
-div[data-testid="column"] > div {
-    width: 100%;
-}
-
-.forecast-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 999px;
-    background: var(--sakura-light);
-    display: inline-block;
-    flex-shrink: 0;
 }
 
 </style>
@@ -519,22 +410,61 @@ selected_station_code = station_label_map[selected_name]
 map_df = get_sakura_forecast_map(year=2026)
 clicked_station_code = None
 
+# Apply any pending map-click station before the selectbox widget is instantiated
+if "pending_station_name" in st.session_state:
+    st.session_state["station_selector"] = st.session_state.pop("pending_station_name")
+
+# ── Topbar ────────────────────────────────────────────────────────────────────
+topbar_left, topbar_right = st.columns([0.75, 1.25], gap="large")
+
+with topbar_left:
+    st.markdown(
+        "<div style=\""
+        "font: 500 12px/1 'IBM Plex Mono', monospace;"
+        "letter-spacing: 2px;"
+        "color: #e69bb4;"
+        "padding-top: 2rem;"
+        "\">桜前線 &mdash; Sakura forecast</div>",
+        unsafe_allow_html=True,
+    )
+
+with topbar_right:
+    selected_name = st.selectbox(
+        label="City",
+        options=options,
+        index=options.index(st.session_state["selected_station_name"]),
+        key="station_selector",
+        label_visibility="collapsed",
+    )
+    if selected_name != st.session_state["selected_station_name"]:
+        st.session_state["selected_station_name"] = selected_name
+        if "sakura_map" in st.session_state:
+            del st.session_state["sakura_map"]
+        st.rerun()
+
+selected_station_code = station_label_map[st.session_state["selected_station_name"]]
+
 hero_left, hero_right = st.columns([0.75, 1.25], gap="large")
 
 with hero_left:
     st.markdown(
         """
-        <div class="hero-block">
-            <h1>When Will Sakura<br>Bloom in Japan?</h1>
-            <p>
-                Plan your perfect trip across Japan with<br>
-                bloom forecasts, peak viewing windows,<br>
-                local highlights, and top spots to admire<br>
-                the fleeting beauty of cherry blossoms.
-            </p>
+        <div style="padding-top:3.5rem;padding-left:0.5rem;">
+            <h2 style="
+                font: 300 58px/1.04 'Newsreader', serif;
+                color: #f6f1f4;
+                margin: 0 0 24px;
+                letter-spacing: -0.5px;
+            ">When will the&nbsp;<em style="font-style:italic;font-weight:400;color:#ff8fa9;">sakura</em><br>bloom?</h2>
+            <p style="
+                font: 300 18px/1.6 'Newsreader', serif;
+                color: #b1aabf;
+                max-width: 430px;
+                margin: 0;
+            ">Choose a city, and we'll pinpoint the days when its blossoms are at their most radiant. Plan your trip around this fleeting season, and experience the rare week each year when the trees transform the streets into a world of petals and light.</p>
         </div>
-        """, 
-        unsafe_allow_html=True
+        """,
+        unsafe_allow_html=True,
     )
 
 with hero_right:
@@ -571,10 +501,10 @@ if (
     and clicked_station_code in reverse_station_label_map
     and clicked_station_code != str(station_label_map[st.session_state["selected_station_name"]])
 ):
-    st.session_state["selected_station_name"] = reverse_station_label_map[clicked_station_code]
+    new_name = reverse_station_label_map[clicked_station_code]
+    st.session_state["selected_station_name"] = new_name
+    st.session_state["pending_station_name"] = new_name
     st.rerun()
-
-# Final station state
 
 selected_name = st.session_state["selected_station_name"]
 selected_station_code = station_label_map[selected_name]
@@ -636,53 +566,153 @@ model_label_map = {
     "hist_gradient_boosting": "Histogram Gradient Boosting",
 }
 
-# Bottom section
+# ── Forecast section ─────────────────────────────────────────────────────────
+forecast_html = render_forecast_section(
+    station_name=selected_name,
+    forecast_df=forecast_df,
+)
+if forecast_html:
+    st.html(forecast_html)
 
-lower_col1, lower_col2, lower_col3, lower_col4 = st.columns([1, 1, 1, 1])
+# ── Through the years ─────────────────────────────────────────────────────────
+st.markdown(
+    """
+    <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:30px;margin-top:34px;">
+        <div style="font:500 12px/1 'IBM Plex Mono',monospace;letter-spacing:2px;color:#e69bb4;margin-bottom:8px;">
+            二十年の記録 &mdash; Through the years
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
-with lower_col1:
-    with st.container(key="timeline_card"):
-        st.markdown(f"### Through the Years")
+years_left, years_right = st.columns([0.9, 1.1], gap="large")
 
-        fig_timeline = plot_sakura_bloom_timeline(
-            bloom_history_df,
-            forecast_df,
-        )
+with years_left:
+    st.markdown(
+        f"""
+        <div style="padding-top:0.5rem;">
+            <h3 style="font:300 28px/1.15 'Newsreader',serif;color:#f6f1f4;margin:0 0 14px;">
+                The bloom keeps creeping <em style="font-style:italic;color:#ff8fa9;">earlier</em>.
+            </h3>
+            <p style="font:300 15px/1.6 'Newsreader',serif;color:#b1aabf;margin:0;">
+                Two decades of {selected_name.title()} first-bloom dates from the Japan Meteorological Agency
+                — one dot per spring. The trend drifts steadily earlier as the city warms.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-        st.plotly_chart(
-            fig_timeline,
-            width="stretch",
-            config={"displayModeBar": False},
-        )
+with years_right:
+    fig_timeline = plot_sakura_bloom_timeline(bloom_history_df, forecast_df)
+    st.plotly_chart(
+        fig_timeline,
+        width="stretch",
+        config={"displayModeBar": False},
+    )
 
-with lower_col2:
-    with st.container(key="visit_card"):
-        st.html(
-            render_best_time_to_visit_card(
-                station_name=selected_name,
-                forecast_df=forecast_df,
-            )
-        )
+# ── Where & how to see it ────────────────────────────────────────────────────
+st.html("""
+<div style="border-top:1px solid rgba(255,255,255,.1);padding-top:30px;margin-top:34px;">
+    <div style="font:500 12px/1 'IBM Plex Mono',monospace;letter-spacing:2px;color:#e69bb4;margin-bottom:22px;">
+        花見 &mdash; Where &amp; how to see it
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1.05fr 1fr;gap:36px;">
 
-with lower_col3:
-    with st.container(key="highlights_card"):
-        st.markdown(f"### Local Spring Traditions")
-        st.markdown(
-            '<p class="muted-text">Coming next...</p>', 
-            unsafe_allow_html=True,
-        )
+        <!-- famous spots -->
+        <div>
+            <div style="font:600 16px/1 'Shippori Mincho',serif;color:#f4eff4;margin-bottom:5px;">
+                名所 <span style="font:500 14px 'Schibsted Grotesk',sans-serif;color:#948fa0;">Famous spots</span>
+            </div>
+            <p style="font:300 14px/1.5 'Newsreader',serif;font-style:italic;color:#948fa0;margin:0 0 14px;">
+                Where Tokyo gathers to look up.
+            </p>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid rgba(255,255,255,.08);padding:10px 0;">
+                <span style="font:300 16px 'Newsreader',serif;color:#eee8f0;">Chidorigafuchi</span>
+                <span style="font:500 11px 'IBM Plex Mono',monospace;color:#6f6a80;">Chiyoda</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid rgba(255,255,255,.08);padding:10px 0;">
+                <span style="font:300 16px 'Newsreader',serif;color:#eee8f0;">Meguro River</span>
+                <span style="font:500 11px 'IBM Plex Mono',monospace;color:#6f6a80;">Meguro</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid rgba(255,255,255,.08);padding:10px 0;">
+                <span style="font:300 16px 'Newsreader',serif;color:#eee8f0;">Ueno Park</span>
+                <span style="font:500 11px 'IBM Plex Mono',monospace;color:#6f6a80;">Tait&#333;</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid rgba(255,255,255,.08);padding:10px 0;">
+                <span style="font:300 16px 'Newsreader',serif;color:#eee8f0;">Shinjuku Gyoen</span>
+                <span style="font:500 11px 'IBM Plex Mono',monospace;color:#6f6a80;">Shinjuku</span>
+            </div>
+        </div>
 
-with lower_col4:
-    with st.container(key="spots_card"):
-        st.markdown("### Nearby Gems")
-        st.markdown(
-            '<p class="muted-text">Coming next...</p>', 
-            unsafe_allow_html=True,
-        )
+        <!-- how to hanami -->
+        <div>
+            <div style="font:600 16px/1 'Shippori Mincho',serif;color:#f4eff4;margin-bottom:5px;">
+                花見の楽しみ方 <span style="font:500 14px 'Schibsted Grotesk',sans-serif;color:#948fa0;">How to hanami</span>
+            </div>
+            <p style="font:300 15px/1.6 'Newsreader',serif;color:#cfc6d6;margin:0 0 14px;">
+                Lay a mat under the trees, share food slowly, and let the afternoon drift.
+                As dusk falls the lanterns come on and the blossoms turn a deeper pink —
+                <em style="font-style:italic;">yozakura</em>, evening hanami, when the crowds thin and the petals glow.
+            </p>
+            <div style="display:flex;gap:10px;">
+                <div style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);
+                    border-radius:11px;padding:12px 14px;">
+                    <div style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:1px;
+                        color:#e69bb4;text-transform:uppercase;margin-bottom:6px;">昼 Day</div>
+                    <div style="font:300 14px/1.4 'Newsreader',serif;color:#eee8f0;">Picnics &amp; mats from late morning.</div>
+                </div>
+                <div style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);
+                    border-radius:11px;padding:12px 14px;">
+                    <div style="font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:1px;
+                        color:#e69bb4;text-transform:uppercase;margin-bottom:6px;">夜 Night</div>
+                    <div style="font:300 14px/1.4 'Newsreader',serif;color:#eee8f0;">Lit blossoms, quieter paths.</div>
+                </div>
+            </div>
+        </div>
 
-st.markdown("---")
-st.caption(
-    f"Source: Japan Meteorological Agency (JMA) • "
-    f"Forecast model — {model_label_map.get(model_name, model_name)} • "
-    f"Updated {forecast_updated_at}"
+        <!-- taste of spring -->
+        <div>
+            <div style="font:600 16px/1 'Shippori Mincho',serif;color:#f4eff4;margin-bottom:5px;">
+                春の味 <span style="font:500 14px 'Schibsted Grotesk',sans-serif;color:#948fa0;">Taste of spring</span>
+            </div>
+            <p style="font:300 15px/1.55 'Newsreader',serif;font-style:italic;color:#948fa0;margin:0 0 14px;">
+                Seasonal sweets to carry to the picnic.
+            </p>
+            <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.05);
+                border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 14px;margin-bottom:9px;">
+                <span style="width:22px;height:22px;border-radius:50%;background:#EFB6C4;flex-shrink:0;
+                    box-shadow:0 0 12px rgba(239,182,196,.5);"></span>
+                <div style="font:300 16px/1 'Newsreader',serif;color:#eee8f0;">桜餅 Sakura mochi</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.05);
+                border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 14px;margin-bottom:9px;">
+                <span style="width:22px;height:22px;border-radius:50%;
+                    background:linear-gradient(180deg,#EFB6C4 33%,#efe8ee 33% 66%,#B9CFA6 66%);
+                    flex-shrink:0;box-shadow:0 0 12px rgba(239,182,196,.4);"></span>
+                <div style="font:300 16px/1 'Newsreader',serif;color:#eee8f0;">花見団子 Hanami dango</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.05);
+                border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 14px;">
+                <span style="width:22px;height:22px;border-radius:50%;background:#E6CBB0;flex-shrink:0;
+                    box-shadow:0 0 12px rgba(230,203,176,.4);"></span>
+                <div style="font:300 16px/1 'Newsreader',serif;color:#eee8f0;">桜ラテ Sakura latte</div>
+            </div>
+        </div>
+    </div>
+</div>
+""")
+
+# ── Footer ────────────────────────────────────────────────────────────────────
+st.markdown(
+    f"""
+    <div style="margin-top:30px;padding-top:15px;border-top:1px solid rgba(255,255,255,.1);
+        font:300 italic 13px/1.4 'Newsreader',serif;color:#6f6a80;">
+        出典 Source &mdash; Japan Meteorological Agency &nbsp;·&nbsp;
+        {model_label_map.get(model_name, model_name)} &nbsp;·&nbsp;
+        Updated {forecast_updated_at}
+    </div>
+    """,
+    unsafe_allow_html=True,
 )
