@@ -9,6 +9,7 @@ SAKURA_LIGHT = "#E8B9C2"
 SAKURA_MEDIUM = "#EA9FAD"
 SAKURA_BRIGHT = "#EA5B75"
 
+
 def plot_sakura_forecast_map(
     df: pd.DataFrame, 
     selected_station_code: str | None = None,
@@ -31,6 +32,9 @@ def plot_sakura_forecast_map(
     df["hover_title"] = df["station_name"].str.title()
     df["hover_bloom"] = "🌸 " + df["bloom_label"]
     df["hover_uncertainty"] = "± " + df["mae_days"].round(1).astype(str) + " days"
+    df["bloom_short"] = pd.to_datetime(df["predicted_event_date"]).apply(
+        lambda d: f"{d.day} {d.strftime('%b')}"
+    )
 
     colorscale = [
         [0.00, "#F2E6B8"],
@@ -73,6 +77,7 @@ def plot_sakura_forecast_map(
                     "hover_uncertainty",
                     "mae_days",
                     "rmse_days",
+                    "bloom_short",
                 ]
             ],
             marker=dict(
@@ -99,12 +104,7 @@ def plot_sakura_forecast_map(
                     ticks="",
                 ),
             ),
-            hovertemplate=(
-                "<span style='font-size:16px;font-weight:500;color:#fff;'>%{text}</span><br>"
-                "<span style='font-size:13px;color:#ff8fa9;'>%{customdata[2]}</span><br>"
-                "<span style='font-size:11px;color:#9a93a6;'>%{customdata[3]}</span>"
-                "<extra></extra>"
-            ),
+            hoverinfo="none",
             showlegend=False,
         )
     )

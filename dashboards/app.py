@@ -7,6 +7,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import base64
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 
 from src.viz.dashboard_queries import (
@@ -402,6 +403,9 @@ reverse_station_label_map = {
 if "selected_station_name" not in st.session_state:
     st.session_state["selected_station_name"] = options[default_index]
 
+if "station_selector" not in st.session_state:
+    st.session_state["station_selector"] = st.session_state["selected_station_name"]
+
 selected_name = st.session_state["selected_station_name"]
 selected_station_code = station_label_map[selected_name]
 
@@ -432,7 +436,6 @@ with topbar_right:
     selected_name = st.selectbox(
         label="City",
         options=options,
-        index=options.index(st.session_state["selected_station_name"]),
         key="station_selector",
         label_visibility="collapsed",
     )
@@ -489,6 +492,169 @@ with hero_right:
                 "staticPlot": False,
             },
         )
+
+        components.html("""
+<script>
+(function() {
+    var doc = window.parent.document;
+    var win = window.parent;
+    var svgNS = 'http://www.w3.org/2000/svg';
+    var STROKE = 'rgba(255,143,169,0.6)';
+    var DIAG = 44;
+
+    function getOrCreateOverlay(plotDiv) {
+        var existing = plotDiv.querySelector('#sakura-callout-overlay');
+        if (existing) return existing;
+        var svg = doc.createElementNS(svgNS, 'svg');
+        svg.id = 'sakura-callout-overlay';
+        svg.style.cssText =
+            'position:absolute;top:0;left:0;width:100%;height:100%;' +
+            'pointer-events:none;overflow:visible;z-index:10;';
+        if (getComputedStyle(plotDiv).position === 'static') {
+            plotDiv.style.position = 'relative';
+        }
+        plotDiv.appendChild(svg);
+        return svg;
+    }
+
+    function clearOverlay(svg) {
+        while (svg.lastChild) svg.removeChild(svg.lastChild);
+    }
+
+    function getDotPos(plotDiv, lon, lat, mouseEvent) {
+        var pRect = plotDiv.getBoundingClientRect();
+        try {
+            var subplot = plotDiv._fullLayout.geo._subplot;
+            if (subplot && subplot.projection) {
+                var pos = subplot.projection([lon, lat]);
+                if (pos && !isNaN(pos[0]) && !isNaN(pos[1])) {
+                    var svgEl = plotDiv.querySelector('svg.main-svg');
+                    var ox = svgEl ? svgEl.getBoundingClientRect().left - pRect.left : 0;
+                    var oy = svgEl ? svgEl.getBoundingClientRect().top  - pRect.top  : 0;
+                    return { x: pos[0] + ox, y: pos[1] + oy };
+                }
+            }
+        } catch(e) {}
+        return { x: mouseEvent.clientX - pRect.left, y: mouseEvent.clientY - pRect.top };
+    }
+
+    function drawCallout(svg, plotDiv, lon, lat, mouseEvent, cityName, dateStr) {
+        clearOverlay(svg);
+
+        var dot = getDotPos(plotDiv, lon, lat, mouseEvent);
+        var px = dot.x, py = dot.y;
+        var plotRect = plotDiv.getBoundingClientRect();
+        var goRight = px < plotRect.width / 2;
+        var dir = goRight ? 1 : -1;
+
+        var ex = px + dir * DIAG;
+        var ey = py - DIAG;
+
+        var ring = doc.createElementNS(svgNS, 'circle');
+        ring.setAttribute('cx', px);
+        ring.setAttribute('cy', py);
+        ring.setAttribute('r', '9');
+        ring.setAttribute('fill', 'none');
+        ring.setAttribute('stroke', 'rgba(255,255,255,0.85)');
+        ring.setAttribute('stroke-width', '2');
+        svg.appendChild(ring);
+
+        function mkTxt(content, family, size, weight) {
+            var t = doc.createElementNS(svgNS, 'text');
+            t.setAttribute('font-family', family);
+            t.setAttribute('font-size', size);
+            t.setAttribute('font-weight', weight);
+            t.setAttribute('visibility', 'hidden');
+            t.textContent = content;
+            svg.appendChild(t);
+            return t;
+        }
+
+        var tName = mkTxt(cityName, "'Newsreader', serif", '14', '400');
+        var tDate = mkTxt(dateStr,  "'IBM Plex Mono', monospace", '12', '500');
+        var barW  = Math.max(tName.getComputedTextLength(), tDate.getComputedTextLength());
+        var anchor = goRight ? 'start' : 'end';
+        var barX2  = ex + dir * barW;
+
+        var diag = doc.createElementNS(svgNS, 'line');
+        diag.setAttribute('x1', px); diag.setAttribute('y1', py);
+        diag.setAttribute('x2', ex); diag.setAttribute('y2', ey);
+        diag.setAttribute('stroke', STROKE);
+        diag.setAttribute('stroke-width', '1');
+        svg.appendChild(diag);
+
+        var bar = doc.createElementNS(svgNS, 'line');
+        bar.setAttribute('x1', ex);    bar.setAttribute('y1', ey);
+        bar.setAttribute('x2', barX2); bar.setAttribute('y2', ey);
+        bar.setAttribute('stroke', STROKE);
+        bar.setAttribute('stroke-width', '1');
+        svg.appendChild(bar);
+
+        tName.setAttribute('x', ex);
+        tName.setAttribute('y', ey - 19);
+        tName.setAttribute('text-anchor', anchor);
+        tName.setAttribute('fill', '#f4eff4');
+        tName.setAttribute('visibility', 'visible');
+
+        tDate.setAttribute('x', ex);
+        tDate.setAttribute('y', ey - 5);
+        tDate.setAttribute('text-anchor', anchor);
+        tDate.setAttribute('fill', '#f4eff4');
+        tDate.setAttribute('visibility', 'visible');
+    }
+
+    function isMapPlot(plotDiv) {
+        return plotDiv._fullData &&
+               plotDiv._fullData.some(function(t) { return t.type === 'scattergeo'; });
+    }
+
+    function attachToPlot(plotDiv) {
+        if (plotDiv._sakuraCalloutAttached) return;
+        if (!plotDiv._fullData) return;
+        if (!isMapPlot(plotDiv)) { plotDiv._sakuraCalloutAttached = true; return; }
+
+        plotDiv._sakuraCalloutAttached = true;
+        var svg = getOrCreateOverlay(plotDiv);
+        var activeStation = null;
+
+        plotDiv.on('plotly_hover', function(data) {
+            var pt = null;
+            for (var i = 0; i < data.points.length; i++) {
+                var p = data.points[i];
+                if (p.customdata && Array.isArray(p.customdata) && p.customdata.length > 6) {
+                    pt = p; break;
+                }
+            }
+            if (!pt) return;
+            var code = pt.customdata[0];
+            if (code === activeStation) return;
+            activeStation = code;
+            drawCallout(svg, plotDiv, pt.lon, pt.lat, data.event, pt.text || '', pt.customdata[6] || '');
+        });
+
+        plotDiv.on('plotly_unhover', function() {
+            activeStation = null;
+            clearOverlay(svg);
+        });
+    }
+
+    function findAndAttach() {
+        doc.querySelectorAll('.js-plotly-plot').forEach(attachToPlot);
+    }
+
+    setTimeout(findAndAttach, 400);
+    setTimeout(findAndAttach, 1000);
+    setTimeout(findAndAttach, 2500);
+
+    if (!win._sakuraCalloutObserver) {
+        win._sakuraCalloutObserver = new MutationObserver(function() {
+            setTimeout(findAndAttach, 300);
+        });
+        win._sakuraCalloutObserver.observe(doc.body, {childList: true, subtree: true});
+    }
+})();
+</script>
+""", height=0)
 
         if map_event and map_event.selection.points:
             clicked_point = map_event.selection.points[0]
