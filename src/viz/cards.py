@@ -145,9 +145,9 @@ def render_forecast_section(station_name: str, forecast_df: pd.DataFrame) -> str
         <!-- calendar strip -->
         <div style="position:relative;display:flex;gap:2px;justify-content:space-between;align-items:flex-end;">
             <!-- best viewing window rectangle -->
-            <div style="position:absolute;left:{bv_left};width:{bv_width};top:-1px;height:42px;
-                border:2px solid rgba(255,255,255,.7);border-radius:10px;pointer-events:none;
-                box-shadow:0 0 14px 0 rgba(255,255,255,.55);z-index:2;
+            <div style="position:absolute;left:{bv_left};width:{bv_width};top:-3px;bottom:14px;
+                border:2px solid rgba(255,255,255,1);border-radius:10px;pointer-events:none;
+                box-shadow:0 0 4px 1px rgba(255,255,255,.9),0 0 14px 2px rgba(255,255,255,.4),inset 0 0 3px 0 rgba(255,255,255,.25);z-index:2;
                 background:rgba(255,255,255,.06);"></div>
             {cells_html}
         </div>
