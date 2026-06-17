@@ -144,7 +144,7 @@ def plot_sakura_forecast_map(
                     textfont=dict(
                         size=13,
                         color="rgba(255,255,255,0.85)",
-                        family="Schibsted Grotesk, sans-serif",
+                        family="'Helvetica Neue', Arial, sans-serif",
                     ),
                     marker=dict(
                         size=17,
