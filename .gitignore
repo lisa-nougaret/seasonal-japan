@@ -38,3 +38,6 @@ artifacts/
 *.joblib
 *.pkl
 *.json
+
+# Design
+seasonal_japan_design/
