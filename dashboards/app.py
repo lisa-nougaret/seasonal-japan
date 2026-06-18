@@ -780,11 +780,16 @@ with years_right:
 
 # ── Where & how to see it ────────────────────────────────────────────────────
 st.html("""
+<style>
+@media (max-width: 640px) {
+    .hanami-grid { grid-template-columns: 1fr !important; gap: 28px !important; }
+}
+</style>
 <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:30px;margin-top:34px;">
     <div style="font:500 12px/1 'IBM Plex Mono',monospace;letter-spacing:2px;color:#e69bb4;margin-bottom:22px;">
         花見 &mdash; Where &amp; how to see it
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1.05fr 1fr;gap:36px;">
+    <div class="hanami-grid" style="display:grid;grid-template-columns:1fr 1.05fr 1fr;gap:36px;">
 
         <!-- famous spots -->
         <div>
