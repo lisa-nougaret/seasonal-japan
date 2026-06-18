@@ -235,6 +235,23 @@ def plot_sakura_bloom_timeline(
             )
         )
 
+        trend_df = df[df["year"] >= df["year"].max() - 19].dropna(subset=["year", "day_of_year"])
+        if len(trend_df) >= 2:
+            coeffs = np.polyfit(trend_df["year"], trend_df["day_of_year"], 1)
+            trend_x = np.array([trend_df["year"].min(), trend_df["year"].max()])
+            trend_y = np.polyval(coeffs, trend_x)
+            fig.add_trace(
+                go.Scatter(
+                    x=trend_x,
+                    y=trend_y,
+                    mode="lines",
+                    name="Trend",
+                    line=dict(color="rgba(255,143,169,0.3)", width=1.5, dash="dot"),
+                    hoverinfo="skip",
+                    showlegend=False,
+                )
+            )
+
     forecast_year = 2026
     if not forecast_df.empty:
         forecast = forecast_df.iloc[0]
