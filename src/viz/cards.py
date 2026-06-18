@@ -52,12 +52,11 @@ def get_best_visit_dates(forecast_df: pd.DataFrame) -> dict:
 
 
 def _interp_bloom_color(t: float) -> str:
-    """Interpolate yellow→pink→purple gradient (matches the map scale)."""
+    """Pale pink at first bloom → #f2959d at peak → background at petal fall."""
     stops = [
-        (0.0,  (242, 230, 184)),
-        (0.45, (255, 143, 169)),
-        (0.60, (255,  60, 120)),
-        (1.0,  ( 40,  20,  35)),
+        (0.00, (249, 221, 223)),  # very pale pink
+        (0.50, (242, 149, 157)),  # #f2959d — full bloom
+        (1.00, ( 21,  19,  27)),  # #15131b — background
     ]
     for i in range(len(stops) - 1):
         t0, c0 = stops[i]
@@ -98,22 +97,24 @@ def render_forecast_section(station_name: str, forecast_df: pd.DataFrame) -> str
 
     cells_html = ""
     for i, day in enumerate(cal_days):
-        dist   = abs(i - peak_center_idx)
-        inten  = max(0.08, math.exp(-(dist / 3.2) ** 2))
-        ct     = min(1.0, max(0.0, (i - 1) / (n_days - 4)))
-        col    = _interp_bloom_color(ct)
-        opac   = 0.2 + 0.8 * inten
+        if peak_center_idx > 0 and i <= peak_center_idx:
+            ct = (i / peak_center_idx) * 0.5
+        else:
+            remaining = max(1, n_days - 1 - peak_center_idx)
+            ct = 0.5 + ((i - peak_center_idx) / remaining) * 0.5
+        ct  = min(1.0, max(0.0, ct))
+        col = _interp_bloom_color(ct)
         try:
             label = day.strftime("%-d")
         except ValueError:
             label = day.strftime("%d").lstrip("0") or "0"
-        in_bv  = best_s <= i <= best_e
-        glow   = "0 0 10px 2px rgba(255,143,169,.6)" if in_bv else f"0 0 5px 0px {col}"
+        in_bv = best_s <= i <= best_e
+        glow  = "0 0 10px 2px rgba(242,149,157,.6)" if in_bv else "none"
 
         cells_html += (
             f'<div style="flex:1;display:flex;flex-direction:column;align-items:center;'
             f'gap:5px;min-width:0;position:relative;z-index:1;">'
-            f'<div style="background:{col};opacity:{opac:.2f};width:100%;aspect-ratio:1;'
+            f'<div style="background:{col};width:100%;aspect-ratio:2/1;'
             f'border-radius:4px;box-shadow:{glow};"></div>'
             f'<div style="font:600 9px \'IBM Plex Mono\',monospace;color:#cfc6d6;'
             f'white-space:nowrap;text-align:center;">{label}</div>'
@@ -165,7 +166,7 @@ def render_forecast_section(station_name: str, forecast_df: pd.DataFrame) -> str
 
             <div style="background:#181420;padding:18px 20px;">
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-                    <span style="width:9px;height:9px;border-radius:50%;background:#8FC89A;"></span>
+                    <span style="width:9px;height:9px;border-radius:50%;background:#f9dddf;"></span>
                     <span style="font:600 14px/1 'Shippori Mincho',serif;color:#f4eff4;">
                         開花 <span style="font:500 12px 'Schibsted Grotesk',sans-serif;color:#948fa0;">First bloom</span>
                     </span>
@@ -176,15 +177,15 @@ def render_forecast_section(station_name: str, forecast_df: pd.DataFrame) -> str
                 </div>
             </div>
 
-            <div style="background:#1d1622;padding:18px 20px;">
+            <div style="background:#181420;padding:18px 20px;">
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-                    <span style="width:9px;height:9px;border-radius:50%;background:#ff8fa9;
-                        box-shadow:0 0 8px #ff8fa9;"></span>
-                    <span style="font:600 14px/1 'Shippori Mincho',serif;color:#ff8fa9;">
+                    <span style="width:9px;height:9px;border-radius:50%;background:#f2959d;
+                        box-shadow:0 0 8px #f2959d;"></span>
+                    <span style="font:600 14px/1 'Shippori Mincho',serif;color:#f2959d;">
                         満開 <span style="font:500 12px 'Schibsted Grotesk',sans-serif;color:#d99fb0;">Peak bloom</span>
                     </span>
                 </div>
-                <div style="font:300 28px/1 'Newsreader',serif;color:#ff8fa9;">{peak_label}</div>
+                <div style="font:300 28px/1 'Newsreader',serif;color:#f2959d;">{peak_label}</div>
                 <div style="font:300 13px/1.45 'Newsreader',serif;color:#948fa0;margin-top:8px;">
                     Every tree glows at its fullest, all at once.
                 </div>
