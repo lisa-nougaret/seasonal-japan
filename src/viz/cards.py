@@ -132,6 +132,12 @@ def render_forecast_section(station_name: str, forecast_df: pd.DataFrame) -> str
     station_display = station_name.title()
 
     return textwrap.dedent(f"""
+    <style>
+    @media (max-width: 640px) {{
+        .forecast-stages {{ grid-template-columns: 1fr !important; gap: 0 !important; }}
+        .forecast-stages > div + div {{ border-top: 1px solid rgba(255,255,255,.08); }}
+    }}
+    </style>
     <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:30px;margin-top:8px;position:relative;">
         <div style="margin-bottom:20px;">
             <div style="font:500 12px/1 'IBM Plex Mono',monospace;letter-spacing:2px;color:#e69bb4;margin-bottom:8px;">
@@ -153,7 +159,7 @@ def render_forecast_section(station_name: str, forecast_df: pd.DataFrame) -> str
         </div>
 
         <!-- three stages -->
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;margin-top:24px;
+        <div class="forecast-stages" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;margin-top:24px;
             background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);
             border-radius:12px;overflow:hidden;">
 
