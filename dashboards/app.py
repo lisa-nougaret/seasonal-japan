@@ -743,7 +743,7 @@ if forecast_html:
 # ── Through the years ─────────────────────────────────────────────────────────
 st.markdown(
     """
-    <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:30px;margin-top:34px;">
+    <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:30px;margin-top:76px;">
         <div style="font:500 12px/1 'IBM Plex Mono',monospace;letter-spacing:2px;color:#e69bb4;margin-bottom:8px;">
             二十年の記録 &mdash; Through the years
         </div>
@@ -785,7 +785,7 @@ st.html("""
     .hanami-grid { grid-template-columns: 1fr !important; gap: 28px !important; }
 }
 </style>
-<div style="border-top:1px solid rgba(255,255,255,.1);padding-top:30px;margin-top:34px;">
+<div style="border-top:1px solid rgba(255,255,255,.1);padding-top:30px;margin-top:76px;">
     <div style="font:500 12px/1 'IBM Plex Mono',monospace;letter-spacing:2px;color:#e69bb4;margin-bottom:22px;">
         花見 &mdash; Where &amp; how to see it
     </div>
@@ -878,7 +878,7 @@ st.html("""
 # ── Footer ────────────────────────────────────────────────────────────────────
 st.markdown(
     f"""
-    <div style="margin-top:30px;padding-top:15px;border-top:1px solid rgba(255,255,255,.1);
+    <div style="margin-top:64px;padding-top:15px;border-top:1px solid rgba(255,255,255,.1);
         font:300 italic 13px/1.4 'Newsreader',serif;color:#6f6a80;">
         出典 Source &mdash; Japan Meteorological Agency &nbsp;·&nbsp;
         {model_label_map.get(model_name, model_name)} &nbsp;·&nbsp;

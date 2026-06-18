@@ -139,7 +139,7 @@ def render_forecast_section(station_name: str, forecast_df: pd.DataFrame) -> str
         .forecast-stages > div + div {{ border-top: 1px solid rgba(255,255,255,.08); }}
     }}
     </style>
-    <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:30px;margin-top:8px;position:relative;">
+    <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:30px;margin-top:50px;position:relative;">
         <div style="margin-bottom:20px;">
             <div style="font:500 12px/1 'IBM Plex Mono',monospace;letter-spacing:2px;color:#e69bb4;margin-bottom:8px;">
                 予報 &mdash; The forecast for {station_display}
