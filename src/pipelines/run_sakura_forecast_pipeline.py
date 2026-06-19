@@ -2,6 +2,7 @@ from src.features.sakura_model_pipeline import (
     load_training_data,
     split_training_data,
     select_best_model,
+    evaluate_per_station,
     fit_final_model,
     load_prediction_features,
     build_all_model_predictions,
@@ -20,10 +21,10 @@ def run_sakura_forecast_pipeline():
     print(f"Training rows: {len(train_df)}")
 
     print("Splitting training/test data...")
-    X_train, X_test, y_train, y_test = split_training_data(train_df)
+    X_train, X_test, y_train, y_test, location_codes_test = split_training_data(train_df)
 
     print("Comparing candidate models...")
-    selection_results = select_best_model(
+    selection_results, best_selection_model = select_best_model(
         X_train=X_train,
         y_train=y_train,
         X_test=X_test,
@@ -36,6 +37,13 @@ def run_sakura_forecast_pipeline():
     print(f"Best model: {best_model_name}")
     print("Metrics:", metrics)
 
+    print("Evaluating per-station error...")
+    per_station = evaluate_per_station(best_selection_model, X_test, y_test, location_codes_test)
+    station_maes = sorted(per_station.items(), key=lambda x: x[1]["mae_days"])
+    print(f"  Stations evaluated: {len(per_station)}")
+    print(f"  Best  station MAE: {station_maes[0][1]['mae_days']:.1f} days ({station_maes[0][0]})")
+    print(f"  Worst station MAE: {station_maes[-1][1]['mae_days']:.1f} days ({station_maes[-1][0]})")
+
     print("Fitting final model on full training data...")
     final_model = fit_final_model(train_df, model_name=best_model_name)
 
@@ -46,6 +54,7 @@ def run_sakura_forecast_pipeline():
         metrics=metrics,
         training_row_count=len(train_df),
         selection_results=selection_results,
+        per_station_metrics=per_station,
     )
     print(f"Model saved to: {model_path}")
 

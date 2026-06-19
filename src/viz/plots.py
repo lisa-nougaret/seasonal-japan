@@ -32,6 +32,7 @@ def plot_sakura_forecast_map(
     df["hover_title"] = df["station_name"].str.title()
     df["hover_bloom"] = "🌸 " + df["bloom_label"]
     df["hover_uncertainty"] = "± " + df["mae_days"].round(1).astype(str) + " days"
+    df["per_station_uncertainty"] = "± " + df["station_mae_days"].round(1).astype(str) + " days"
     df["bloom_short"] = pd.to_datetime(df["predicted_event_date"]).apply(
         lambda d: f"{d.day} {d.strftime('%b')}"
     )
@@ -78,6 +79,7 @@ def plot_sakura_forecast_map(
                     "mae_days",
                     "rmse_days",
                     "bloom_short",
+                    "per_station_uncertainty",
                 ]
             ],
             marker=dict(

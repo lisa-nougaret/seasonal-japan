@@ -538,7 +538,7 @@ with hero_right:
         return { x: mouseEvent.clientX - pRect.left, y: mouseEvent.clientY - pRect.top };
     }
 
-    function drawCallout(svg, plotDiv, lon, lat, mouseEvent, cityName, dateStr) {
+    function drawCallout(svg, plotDiv, lon, lat, mouseEvent, cityName, dateStr, marginStr) {
         clearOverlay(svg);
 
         var dot = getDotPos(plotDiv, lon, lat, mouseEvent);
@@ -570,9 +570,13 @@ with hero_right:
             return t;
         }
 
-        var tName = mkTxt(cityName, "'Newsreader', serif", '14', '400');
-        var tDate = mkTxt(dateStr,  "'IBM Plex Mono', monospace", '12', '500');
-        var barW  = Math.max(tName.getComputedTextLength(), tDate.getComputedTextLength());
+        var tName   = mkTxt(cityName,   "'Newsreader', serif",        '14', '400');
+        var tDate   = mkTxt(dateStr,    "'IBM Plex Mono', monospace",  '12', '500');
+        var tMargin = marginStr ? mkTxt(marginStr, "'IBM Plex Mono', monospace", '10', '400') : null;
+
+        var barW = Math.max(tName.getComputedTextLength(), tDate.getComputedTextLength());
+        if (tMargin && tMargin.getComputedTextLength() > barW) barW = tMargin.getComputedTextLength();
+
         var anchor = goRight ? 'start' : 'end';
         var barX2  = ex + dir * barW;
 
@@ -591,16 +595,24 @@ with hero_right:
         svg.appendChild(bar);
 
         tName.setAttribute('x', ex);
-        tName.setAttribute('y', ey - 19);
+        tName.setAttribute('y', ey - (tMargin ? 31 : 19));
         tName.setAttribute('text-anchor', anchor);
         tName.setAttribute('fill', '#f4eff4');
         tName.setAttribute('visibility', 'visible');
 
         tDate.setAttribute('x', ex);
-        tDate.setAttribute('y', ey - 5);
+        tDate.setAttribute('y', ey - (tMargin ? 17 : 5));
         tDate.setAttribute('text-anchor', anchor);
         tDate.setAttribute('fill', '#f4eff4');
         tDate.setAttribute('visibility', 'visible');
+
+        if (tMargin) {
+            tMargin.setAttribute('x', ex);
+            tMargin.setAttribute('y', ey - 3);
+            tMargin.setAttribute('text-anchor', anchor);
+            tMargin.setAttribute('fill', 'rgba(244,239,244,0.5)');
+            tMargin.setAttribute('visibility', 'visible');
+        }
     }
 
     function isMapPlot(plotDiv) {
@@ -629,7 +641,7 @@ with hero_right:
             var code = pt.customdata[0];
             if (code === activeStation) return;
             activeStation = code;
-            drawCallout(svg, plotDiv, pt.lon, pt.lat, data.event, pt.text || '', pt.customdata[6] || '');
+            drawCallout(svg, plotDiv, pt.lon, pt.lat, data.event, pt.text || '', pt.customdata[6] || '', pt.customdata[7] || '');
         });
 
         plotDiv.on('plotly_unhover', function() {

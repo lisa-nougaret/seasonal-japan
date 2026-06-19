@@ -92,19 +92,21 @@ def split_training_data(df: pd.DataFrame):
 
     if TARGET not in df.columns:
         raise ValueError(f"Missing target column: {TARGET}")
-    
+
     if df[TARGET].isnull().any():
         raise ValueError(f"Null values found in target column: {TARGET}")
 
     X = df[FEATURES]
     y = df[TARGET]
 
-    return train_test_split(
-        X, 
-        y, 
-        test_size=0.2, 
+    X_train, X_test, y_train, y_test = train_test_split(
+        X,
+        y,
+        test_size=0.2,
         random_state=42
     )
+    location_codes_test = df.loc[X_test.index, "location_code"]
+    return X_train, X_test, y_train, y_test, location_codes_test
 
 def build_model(model_name: str):
     hyperparameters = CANDIDATE_MODELS[model_name]["hyperparameters"]
@@ -134,18 +136,42 @@ def evaluate_model(model, X_test: pd.DataFrame, y_test: pd.Series) -> dict:
         "evaluation_row_count": int(len(X_test)),
     }
 
+def evaluate_per_station(
+    model,
+    X_test: pd.DataFrame,
+    y_test: pd.Series,
+    location_codes: pd.Series,
+) -> dict:
+    preds = pd.Series(model.predict(X_test), index=X_test.index)
+    results = {}
+    for loc in sorted(location_codes.unique()):
+        mask = location_codes == loc
+        y_true = y_test[mask]
+        y_pred = preds[mask]
+        if len(y_true) < 2:
+            continue
+        results[loc] = {
+            "mae_days": float(mean_absolute_error(y_true, y_pred)),
+            "rmse_days": float(mean_squared_error(y_true, y_pred) ** 0.5),
+            "n_test_rows": int(len(y_true)),
+        }
+    return results
+
+
 def select_best_model(
     X_train: pd.DataFrame,
     X_test: pd.DataFrame,
     y_train: pd.Series,
     y_test: pd.Series,
-) -> pd.DataFrame:
+) -> tuple[pd.DataFrame, object]:
     rows = []
+    trained_models = {}
 
     for model_name in CANDIDATE_MODELS:
         model = build_model(model_name)
         trained_model = train_model(model, X_train, y_train)
         metrics = evaluate_model(trained_model, X_test, y_test)
+        trained_models[model_name] = trained_model
 
         rows.append(
             {
@@ -162,7 +188,8 @@ def select_best_model(
         .reset_index(drop=True)
     )
 
-    return results_df
+    best_model_name = results_df.iloc[0]["model_name"]
+    return results_df, trained_models[best_model_name]
 
 def fit_final_model(df: pd.DataFrame, model_name: str):
     validate_feature_columns(df, FEATURES)
@@ -281,11 +308,12 @@ def save_predictions(df: pd.DataFrame) -> None:
     )
 
 def save_model_artifact(
-    model, 
+    model,
     model_name: str,
-    metrics: dict, 
+    metrics: dict,
     training_row_count: int,
     selection_results: pd.DataFrame,
+    per_station_metrics: dict | None = None,
 ) -> Path:
     timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
     model_path = ARTIFACT_DIR / f"sakura_{model_name}_{MODEL_VERSION}_{timestamp}.joblib"
@@ -301,6 +329,7 @@ def save_model_artifact(
         "metrics": metrics,
         "training_row_count": training_row_count,
         "selection_results": selection_results.to_dict(orient="records"),
+        "per_station_metrics": per_station_metrics or {},
         "saved_at_utc": timestamp,
     }
 

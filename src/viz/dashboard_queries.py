@@ -1,6 +1,19 @@
+import json
+from pathlib import Path
+
 import pandas as pd
 from sqlalchemy import text
 from src.db.db import get_engine
+
+
+def _load_per_station_mae() -> dict:
+    artifact_dir = Path("artifacts/models")
+    json_files = sorted(artifact_dir.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
+    if not json_files:
+        return {}
+    with open(json_files[0], encoding="utf-8") as f:
+        meta = json.load(f)
+    return {k: v["mae_days"] for k, v in meta.get("per_station_metrics", {}).items()}
 
 def get_station_list() -> pd.DataFrame:
     query = """
@@ -173,5 +186,10 @@ def get_sakura_forecast_map(year: int = 2026) -> pd.DataFrame:
         df['mae_days'] = pd.to_numeric(df['mae_days'], errors='coerce')
         df['rmse_days'] = pd.to_numeric(df['rmse_days'], errors='coerce')
         df["predicted_day_of_year"] = pd.to_numeric(df["predicted_day_of_year"], errors='coerce')
+
+        per_station_mae = _load_per_station_mae()
+        df["station_mae_days"] = (
+            df["location_code"].astype(str).map(per_station_mae).fillna(df["mae_days"])
+        )
 
     return df
