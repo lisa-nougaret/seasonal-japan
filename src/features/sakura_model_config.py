@@ -7,6 +7,7 @@ FEATURES = [
     "february_mean_temp",
     "march_mean_temp",
     "january_march_cumulative_temp",
+    "winter_precipitation_mm",
 ]
 
 MODEL_VERSION = "v3"
