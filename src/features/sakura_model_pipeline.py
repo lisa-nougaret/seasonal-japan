@@ -62,7 +62,8 @@ def load_prediction_features() -> pd.DataFrame:
         february_mean_temp,
         march_mean_temp,
         january_march_cumulative_temp,
-        winter_precipitation_mm
+        winter_precipitation_mm,
+        using_climate_normals
     FROM analytics.fact_sakura_prediction_features
     WHERE event_type = 'sakura_bloom'
       AND last_autumn_mean_temp IS NOT NULL
@@ -234,7 +235,9 @@ def build_predictions(
     out["rmse_days"] = metrics["rmse_days"]
     out["mae_days"] = metrics["mae_days"]
     out["r2_score"] = metrics["r2_score"]
-    out["prediction_status"] = "predicted"
+    out["prediction_status"] = pred_df["using_climate_normals"].map(
+        {True: "estimated", False: "predicted"}
+    ).fillna("predicted")
     out["source_name"] = f"model_{model_name}"
     out = out.rename(columns={"year": "forecast_year"})
 

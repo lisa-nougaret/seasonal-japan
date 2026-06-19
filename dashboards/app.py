@@ -6,6 +6,8 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import base64
+from datetime import date
+
 import streamlit as st
 import streamlit.components.v1 as components
 import pandas as pd
@@ -17,6 +19,7 @@ from src.viz.dashboard_queries import (
     get_bloom_history,
     get_bloom_temp_features,
     get_sakura_forecast_map,
+    get_available_forecast_years,
 )
 
 from src.viz.plots import (
@@ -406,12 +409,23 @@ if "selected_station_name" not in st.session_state:
 if "station_selector" not in st.session_state:
     st.session_state["station_selector"] = st.session_state["selected_station_name"]
 
+available_years = get_available_forecast_years()
+if not available_years:
+    available_years = [date.today().year]
+
+if "active_year" not in st.session_state:
+    current_year = date.today().year
+    st.session_state["active_year"] = min(
+        (y for y in available_years if y >= current_year),
+        default=max(available_years),
+    )
+
 selected_name = st.session_state["selected_station_name"]
 selected_station_code = station_label_map[selected_name]
 
 # Hero + Map
 
-map_df = get_sakura_forecast_map(year=2026)
+map_df = get_sakura_forecast_map(year=st.session_state["active_year"])
 clicked_station_code = None
 
 # Apply any pending map-click station before the selectbox widget is instantiated
@@ -433,17 +447,31 @@ with topbar_left:
     )
 
 with topbar_right:
-    selected_name = st.selectbox(
-        label="City",
-        options=options,
-        key="station_selector",
-        label_visibility="collapsed",
-    )
-    if selected_name != st.session_state["selected_station_name"]:
-        st.session_state["selected_station_name"] = selected_name
-        if "sakura_map" in st.session_state:
-            del st.session_state["sakura_map"]
-        st.rerun()
+    city_col, year_col = st.columns([2, 1])
+    with city_col:
+        selected_name = st.selectbox(
+            label="City",
+            options=options,
+            key="station_selector",
+            label_visibility="collapsed",
+        )
+        if selected_name != st.session_state["selected_station_name"]:
+            st.session_state["selected_station_name"] = selected_name
+            if "sakura_map" in st.session_state:
+                del st.session_state["sakura_map"]
+            st.rerun()
+    if len(available_years) > 1:
+        with year_col:
+            selected_year = st.selectbox(
+                label="Year",
+                options=available_years,
+                index=available_years.index(st.session_state["active_year"]),
+                key="year_selector",
+                label_visibility="collapsed",
+            )
+            if selected_year != st.session_state["active_year"]:
+                st.session_state["active_year"] = selected_year
+                st.rerun()
 
 selected_station_code = station_label_map[st.session_state["selected_station_name"]]
 
@@ -693,7 +721,7 @@ selected_n_years = 20
 
 bloom_history_df = get_bloom_history(selected_location_code)
 bloom_temp_df = get_bloom_temp_features(selected_station_code, selected_location_code)
-forecast_df = get_bloom_forecast(selected_location_code, year=2026)
+forecast_df = get_bloom_forecast(selected_location_code, year=st.session_state["active_year"])
 
 df = get_climate_timeseries(selected_station_code)
 

@@ -15,6 +15,20 @@ def _load_per_station_mae() -> dict:
         meta = json.load(f)
     return {k: v["mae_days"] for k, v in meta.get("per_station_metrics", {}).items()}
 
+def get_available_forecast_years() -> list[int]:
+    query = text("""
+        SELECT DISTINCT forecast_year
+        FROM analytics.fact_sakura_forecast
+        WHERE is_best_model = TRUE
+          AND event_type = 'sakura_bloom'
+        ORDER BY forecast_year
+    """)
+    engine = get_engine()
+    with engine.connect() as conn:
+        result = conn.execute(query)
+        return [row[0] for row in result]
+
+
 def get_station_list() -> pd.DataFrame:
     query = """
     SELECT
