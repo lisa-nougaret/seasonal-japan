@@ -13,6 +13,7 @@ CREATE TABLE analytics.fact_sakura_forecast (
     training_row_count INTEGER,
     rmse_days NUMERIC,
     mae_days NUMERIC,
+    station_mae_days NUMERIC,
     r2_score NUMERIC,
     prediction_status TEXT NOT NULL,
     source_name TEXT,

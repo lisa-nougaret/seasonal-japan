@@ -72,6 +72,7 @@ def run_sakura_forecast_pipeline():
         pred_df=pred_df,
         train_df=train_df,
         selection_results=selection_results,
+        per_station_metrics=per_station,
     )
 
     print("Saving predictions to database...")

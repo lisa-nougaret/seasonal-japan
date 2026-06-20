@@ -209,12 +209,13 @@ def fit_final_model(df: pd.DataFrame, model_name: str):
     return model
 
 def build_predictions(
-    pred_df: pd.DataFrame, 
-    model, 
+    pred_df: pd.DataFrame,
+    model,
     model_name: str,
-    metrics: dict, 
+    metrics: dict,
     training_row_count: int,
     is_best_model: bool,
+    per_station_metrics: dict | None = None,
 ) -> pd.DataFrame:
     validate_feature_columns(pred_df, FEATURES)
 
@@ -234,6 +235,10 @@ def build_predictions(
     out["training_row_count"] = training_row_count
     out["rmse_days"] = metrics["rmse_days"]
     out["mae_days"] = metrics["mae_days"]
+    station_mae_map = {k: v["mae_days"] for k, v in (per_station_metrics or {}).items()}
+    out["station_mae_days"] = (
+        out["location_code"].astype(str).map(station_mae_map).fillna(metrics["mae_days"])
+    )
     out["r2_score"] = metrics["r2_score"]
     out["prediction_status"] = pred_df["using_climate_normals"].map(
         {True: "estimated", False: "predicted"}
@@ -247,6 +252,7 @@ def build_all_model_predictions(
     train_df: pd.DataFrame,
     pred_df: pd.DataFrame,
     selection_results: pd.DataFrame,
+    per_station_metrics: dict | None = None,
 ) -> pd.DataFrame:
     best_model_name = selection_results.iloc[0]["model_name"]
     outputs = []
@@ -264,6 +270,7 @@ def build_all_model_predictions(
             metrics=metrics,
             training_row_count=len(train_df),
             is_best_model=(model_name == best_model_name),
+            per_station_metrics=per_station_metrics if model_name == best_model_name else None,
         )
         outputs.append(forecast_df)
 

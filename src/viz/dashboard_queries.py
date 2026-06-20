@@ -1,19 +1,6 @@
-import json
-from pathlib import Path
-
 import pandas as pd
 from sqlalchemy import text
 from src.db.db import get_engine
-
-
-def _load_per_station_mae() -> dict:
-    artifact_dir = Path("artifacts/models")
-    json_files = sorted(artifact_dir.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
-    if not json_files:
-        return {}
-    with open(json_files[0], encoding="utf-8") as f:
-        meta = json.load(f)
-    return {k: v["mae_days"] for k, v in meta.get("per_station_metrics", {}).items()}
 
 def get_available_forecast_years() -> list[int]:
     query = text("""
@@ -177,6 +164,7 @@ def get_sakura_forecast_map(year: int = 2026) -> pd.DataFrame:
             f.predicted_event_date,
             f.model_name,
             f.mae_days,
+            f.station_mae_days,
             f.rmse_days
         FROM analytics.fact_sakura_forecast f
         JOIN analytics.dim_station s
@@ -198,12 +186,8 @@ def get_sakura_forecast_map(year: int = 2026) -> pd.DataFrame:
         df['predicted_event_date'] = pd.to_datetime(df['predicted_event_date'])
         df['bloom_label'] = df['predicted_event_date'].dt.strftime('%d %b %Y')
         df['mae_days'] = pd.to_numeric(df['mae_days'], errors='coerce')
+        df['station_mae_days'] = pd.to_numeric(df['station_mae_days'], errors='coerce').fillna(df['mae_days'])
         df['rmse_days'] = pd.to_numeric(df['rmse_days'], errors='coerce')
         df["predicted_day_of_year"] = pd.to_numeric(df["predicted_day_of_year"], errors='coerce')
-
-        per_station_mae = _load_per_station_mae()
-        df["station_mae_days"] = (
-            df["location_code"].astype(str).map(per_station_mae).fillna(df["mae_days"])
-        )
 
     return df
