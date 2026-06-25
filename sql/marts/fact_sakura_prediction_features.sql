@@ -31,6 +31,7 @@ historical_normals AS (
         AVG(mean_temp_c)                  AS avg_temp,
         AVG(precipitation_mm)             AS avg_precip
     FROM analytics.fact_monthly_climate
+    WHERE EXTRACT(YEAR FROM date_key) BETWEEN 1991 AND 2020
     GROUP BY RIGHT(station_code::text, 3), EXTRACT(MONTH FROM date_key)
 ),
 months_needed AS (

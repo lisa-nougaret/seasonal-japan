@@ -71,7 +71,60 @@ def _interp_bloom_color(t: float) -> str:
     return f"rgb({lc[0]},{lc[1]},{lc[2]})"
 
 
-def render_forecast_section(station_name: str, forecast_df: pd.DataFrame) -> str:
+def _early_late_badge(forecast_doy: int, hist_avg_doy: int | None) -> str:
+    if hist_avg_doy is None:
+        return ""
+    delta = forecast_doy - hist_avg_doy
+    if abs(delta) <= 1:
+        label = "On track — within a day of the 20-year average"
+        color = "#948fa0"
+    elif delta < 0:
+        label = f"{abs(delta)} day{'s' if abs(delta) != 1 else ''} earlier than the 20-year average"
+        color = "#ff8fa9"
+    else:
+        label = f"{delta} day{'s' if delta != 1 else ''} later than the 20-year average"
+        color = "#7eb8c9"
+    return (
+        f'<span style="font:500 11px/1 \'IBM Plex Mono\',monospace;letter-spacing:0.5px;'
+        f'color:{color};border:1px solid {color};border-radius:20px;'
+        f'padding:3px 10px;white-space:nowrap;">{label}</span>'
+    )
+
+
+def _accuracy_note(station_mae: float | None, global_mae: float | None) -> str:
+    mae = station_mae if station_mae is not None else global_mae
+    if mae is None:
+        return ""
+    if mae > 20:
+        return (
+            '<p style="font:300 italic 13px/1.4 \'Newsreader\',serif;color:#b08a6a;margin:12px 0 0;">'
+            "Forecast reliability is lower for this region — allow extra flexibility when planning."
+            "</p>"
+        )
+    return (
+        f'<p style="font:300 italic 13px/1.4 \'Newsreader\',serif;color:#948fa0;margin:12px 0 0;">'
+        f"Forecast accuracy: typically within ±{mae:.0f} days for this station."
+        f"</p>"
+    )
+
+
+def _estimated_tag(prediction_status: str | None) -> str:
+    if prediction_status != "estimated":
+        return ""
+    return (
+        '<span style="font:500 10px/1 \'IBM Plex Mono\',monospace;letter-spacing:1px;'
+        'color:#e69bb4;border:1px solid rgba(230,155,180,0.4);border-radius:20px;'
+        'padding:2px 8px;margin-left:8px;vertical-align:middle;">'
+        "USES CLIMATE NORMALS"
+        "</span>"
+    )
+
+
+def render_forecast_section(
+    station_name: str,
+    forecast_df: pd.DataFrame,
+    hist_avg_doy: int | None = None,
+) -> str:
     dates = get_best_visit_dates(forecast_df)
     if not dates["available"]:
         return ""
@@ -81,6 +134,11 @@ def render_forecast_section(station_name: str, forecast_df: pd.DataFrame) -> str
     peak_end    = dates["peak_end"]
     visit_start = dates["visit_start"]
     visit_end   = dates["visit_end"]
+
+    row = forecast_df.iloc[0]
+    station_mae = float(row["station_mae_days"]) if pd.notna(row.get("station_mae_days")) else None
+    global_mae  = float(row["mae_days"]) if pd.notna(row.get("mae_days")) else None
+    prediction_status = str(row.get("prediction_status", "")) or None
 
     n_days = 17
     cal_days = [first_bloom + pd.Timedelta(days=i) for i in range(n_days)]
@@ -131,6 +189,10 @@ def render_forecast_section(station_name: str, forecast_df: pd.DataFrame) -> str
         visit_label = f"{visit_start.strftime('%d %b')} – {visit_end.strftime('%d %b')}"
 
     station_display = station_name.title()
+    forecast_doy    = int(row["predicted_day_of_year"]) if pd.notna(row.get("predicted_day_of_year")) else None
+    badge_html      = _early_late_badge(forecast_doy, hist_avg_doy) if forecast_doy else ""
+    accuracy_html   = _accuracy_note(station_mae, global_mae)
+    estimated_html  = _estimated_tag(prediction_status)
 
     return textwrap.dedent(f"""
     <style>
@@ -142,10 +204,13 @@ def render_forecast_section(station_name: str, forecast_df: pd.DataFrame) -> str
     <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:30px;margin-top:50px;position:relative;">
         <div style="margin-bottom:20px;">
             <div style="font:500 12px/1 'IBM Plex Mono',monospace;letter-spacing:2px;color:#e69bb4;margin-bottom:8px;">
-                予報 &mdash; The forecast for {station_display}
+                予報 &mdash; The forecast for {station_display}{estimated_html}
             </div>
-            <div style="font:400 15px/1.4 'Newsreader',serif;font-style:italic;color:#948fa0;">
-                Daily bloom intensity through the season.
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px;">
+                <span style="font:400 15px/1.4 'Newsreader',serif;font-style:italic;color:#948fa0;">
+                    Daily bloom intensity through the season.
+                </span>
+                {badge_html}
             </div>
         </div>
 
@@ -206,6 +271,7 @@ def render_forecast_section(station_name: str, forecast_df: pd.DataFrame) -> str
                 </div>
             </div>
         </div>
+        {accuracy_html}
     </div>
     """).strip()
 

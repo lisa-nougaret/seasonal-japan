@@ -8,7 +8,7 @@ from sqlalchemy import text, bindparam
 from sklearn.ensemble import RandomForestRegressor, HistGradientBoostingRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import cross_val_score, train_test_split
 
 from src.db.db import get_engine
 from src.features.sakura_model_config import (
@@ -170,22 +170,31 @@ def select_best_model(
 
     for model_name in CANDIDATE_MODELS:
         model = build_model(model_name)
+
+        cv_scores = cross_val_score(
+            build_model(model_name), X_train, y_train,
+            cv=5, scoring="neg_mean_absolute_error",
+        )
+        cv_mae = float(-cv_scores.mean())
+
         trained_model = train_model(model, X_train, y_train)
-        metrics = evaluate_model(trained_model, X_test, y_test)
+        holdout_metrics = evaluate_model(trained_model, X_test, y_test)
         trained_models[model_name] = trained_model
 
         rows.append(
             {
                 "model_name": model_name,
                 "model_type": type(trained_model).__name__,
-                "metrics": metrics,
-                **metrics,
+                "cv_mae_days": cv_mae,
+                "cv_mae_std": float(cv_scores.std()),
+                "metrics": holdout_metrics,
+                **holdout_metrics,
             }
         )
 
     results_df = (
         pd.DataFrame(rows)
-        .sort_values(by=EVALUATION_METRIC, ascending=True)
+        .sort_values(by="cv_mae_days", ascending=True)
         .reset_index(drop=True)
     )
 
@@ -335,7 +344,7 @@ def save_model_artifact(
         "model_name": model_name,
         "model_version": MODEL_VERSION,
         "features": FEATURES,
-        "selection_metric": EVALUATION_METRIC,
+        "selection_metric": "cv_mae_days_5fold",
         "metrics": metrics,
         "training_row_count": training_row_count,
         "selection_results": selection_results.to_dict(orient="records"),

@@ -31,13 +31,35 @@ climate_joined AS (
     LEFT JOIN analytics.fact_monthly_climate c
         ON RIGHT(c.station_code::text, 3) = s.location_code
 ),
+historical_normals AS (
+    SELECT
+        RIGHT(station_code::text, 3)      AS location_code,
+        EXTRACT(MONTH FROM date_key)::int AS month,
+        AVG(mean_temp_c)                  AS avg_temp,
+        AVG(precipitation_mm)             AS avg_precip
+    FROM analytics.fact_monthly_climate
+    WHERE EXTRACT(YEAR FROM date_key) BETWEEN 1991 AND 2020
+    GROUP BY RIGHT(station_code::text, 3), EXTRACT(MONTH FROM date_key)
+),
+climate_with_normals AS (
+    SELECT
+        cj.location_code,
+        cj.year,
+        cj.date_key,
+        COALESCE(cj.mean_temp_c,      hn.avg_temp)   AS mean_temp_c,
+        COALESCE(cj.precipitation_mm, hn.avg_precip)  AS precipitation_mm
+    FROM climate_joined cj
+    LEFT JOIN historical_normals hn
+        ON  hn.location_code = cj.location_code
+        AND hn.month         = EXTRACT(MONTH FROM cj.date_key)
+),
 climate_features AS (
     SELECT
         location_code,
         year,
         AVG(
             CASE
-                WHEN 
+                WHEN
                     EXTRACT(MONTH FROM date_key) IN (9, 10, 11)
                     AND EXTRACT(YEAR FROM date_key) = year - 1
                 THEN mean_temp_c
@@ -100,7 +122,7 @@ climate_features AS (
                 THEN precipitation_mm
             END
         ) AS winter_precipitation_mm
-    FROM climate_joined
+    FROM climate_with_normals
     GROUP BY location_code, year
 )
 

@@ -20,6 +20,7 @@ from src.viz.dashboard_queries import (
     get_bloom_temp_features,
     get_sakura_forecast_map,
     get_available_forecast_years,
+    get_historical_avg_bloom,
 )
 
 from src.viz.plots import (
@@ -30,8 +31,11 @@ from src.viz.plots import (
 from src.viz.cards import render_forecast_section
 
 def add_floating_petals(image_path: str):
-    with open(image_path, "rb") as f:
-        encoded = base64.b64encode(f.read()).decode()
+    try:
+        with open(image_path, "rb") as f:
+            encoded = base64.b64encode(f.read()).decode()
+    except FileNotFoundError:
+        return
 
     st.markdown(
         f"""
@@ -81,10 +85,73 @@ def add_floating_petals(image_path: str):
     )
 
 st.set_page_config(
-    page_title="Seasonal Japan", 
-    page_icon="🌸", 
+    page_title="Seasonal Japan",
+    page_icon="🌸",
     layout="wide"
 )
+
+REGIONAL_SPOTS = {
+    "TOKYO": [
+        ("Chidorigafuchi", "Chiyoda"),
+        ("Meguro River", "Meguro"),
+        ("Ueno Park", "Taitō"),
+        ("Shinjuku Gyoen", "Shinjuku"),
+    ],
+    "KYOTO": [
+        ("Maruyama Park", "Higashiyama"),
+        ("Philosopher's Path", "Sakyo"),
+        ("Kiyomizudera", "Higashiyama"),
+        ("Nijo Castle", "Nakagyo"),
+    ],
+    "OSAKA": [
+        ("Osaka Castle Park", "Chuo"),
+        ("Kema Sakuranomiya Park", "Miyakojima"),
+        ("Expo '70 Commemorative Park", "Suita"),
+        ("Nagai Park", "Higashinari"),
+    ],
+    "SAPPORO": [
+        ("Maruyama Park", "Chuo"),
+        ("Hokkaido University", "Kita"),
+        ("Moerenuma Park", "Higashi"),
+        ("Hitsujigaoka Obs. Hill", "Toyohira"),
+    ],
+    "HIROSHIMA": [
+        ("Peace Memorial Park", "Naka"),
+        ("Shukkeien Garden", "Naka"),
+        ("Hijiyama Park", "Minami"),
+        ("Miyajima Island", "Hatsukaichi"),
+    ],
+    "SENDAI": [
+        ("Nishi Park", "Aoba"),
+        ("Tsutsujigaoka Park", "Miyagino"),
+        ("Sendai Castle Ruins", "Aoba"),
+        ("Funaoka Castle Park", "Shibata"),
+    ],
+    "NAGOYA": [
+        ("Nagoya Castle", "Kita"),
+        ("Tsurumai Park", "Showa"),
+        ("Higashiyama Zoo & Garden", "Chikusa"),
+        ("Yamazaki River", "Nakamura"),
+    ],
+    "FUKUOKA": [
+        ("Maizuru Park", "Chuo"),
+        ("Ohori Park", "Chuo"),
+        ("Nishi Park", "Nishi"),
+        ("Kego Park", "Chuo"),
+    ],
+    "NAHA": [
+        ("Yogi Park", "Naha"),
+        ("Nago Castle Park", "Nago"),
+        ("Cape Chinen Park", "Nanjo"),
+        ("Okinawa Memorial Park", "Itoman"),
+    ],
+    "KANAZAWA": [
+        ("Kenroku-en Garden", "Kanazawa"),
+        ("Kanazawa Castle Park", "Kanazawa"),
+        ("Saigawa River Banks", "Kanazawa"),
+        ("Utatsuyama Park", "Kanazawa"),
+    ],
+}
 
 add_floating_petals("dashboards/assets/sakura_petal.png")
 
@@ -725,14 +792,15 @@ forecast_df = get_bloom_forecast(selected_location_code, year=st.session_state["
 
 df = get_climate_timeseries(selected_station_code)
 
-if df.empty:
-    st.warning("No climate data found for this station.")
-    st.stop()
+climate_data_available = not df.empty
+if not climate_data_available:
+    st.warning("Climate data is not available for this station — some charts may be limited.")
 
 # Prepare data
 
-df["date_key"] = pd.to_datetime(df["date_key"])
-df["year"] = df["date_key"].dt.year
+if climate_data_available:
+    df["date_key"] = pd.to_datetime(df["date_key"])
+    df["year"] = df["date_key"].dt.year
 
 if not bloom_history_df.empty:
     bloom_history_df["date_key"] = pd.to_datetime(bloom_history_df["date_key"])
@@ -757,6 +825,8 @@ if not bloom_temp_df.empty:
 
 # Forecast info
 
+hist_avg_doy = get_historical_avg_bloom(selected_location_code)
+
 if not forecast_df.empty and pd.notna(forecast_df.loc[0, "predicted_event_date"]):
     bloom_date = pd.to_datetime(forecast_df.loc[0, "predicted_event_date"]).strftime("%d %b %Y")
     model_name = forecast_df.loc[0, "model_name"]
@@ -776,6 +846,7 @@ model_label_map = {
 forecast_html = render_forecast_section(
     station_name=selected_name,
     forecast_df=forecast_df,
+    hist_avg_doy=hist_avg_doy,
 )
 if forecast_html:
     st.html(forecast_html)
@@ -799,11 +870,11 @@ with years_left:
         f"""
         <div style="padding-top:0.5rem;">
             <h3 style="font:300 28px/1.15 'Newsreader',serif;color:#f6f1f4;margin:0 0 14px;">
-                The bloom keeps creeping <em style="font-style:italic;color:#ff8fa9;">earlier</em>.
+                Twenty years of <em style="font-style:italic;color:#ff8fa9;">{selected_name.title()}</em> springs.
             </h3>
             <p style="font:300 15px/1.6 'Newsreader',serif;color:#b1aabf;margin:0;">
-                Two decades of {selected_name.title()} first-bloom dates from the Japan Meteorological Agency
-                — one dot per spring. The trend drifts steadily earlier as the city warms.
+                First-bloom dates from the Japan Meteorological Agency — one dot per spring.
+                Each point marks the day the first flowers opened. The trend line shows how timing has shifted over the last two decades.
             </p>
         </div>
         """,
@@ -819,11 +890,32 @@ with years_right:
     )
 
 # ── Where & how to see it ────────────────────────────────────────────────────
-st.html("""
+_spots = REGIONAL_SPOTS.get(selected_name.upper())
+if _spots:
+    _spots_subtext = f"Where {selected_name.title()} gathers to look up."
+    _spots_rows = "".join(
+        f'<div style="display:flex;justify-content:space-between;align-items:baseline;'
+        f'border-top:1px solid rgba(255,255,255,.08);padding:10px 0;">'
+        f'<span style="font:300 16px \'Newsreader\',serif;color:#eee8f0;">{name}</span>'
+        f'<span style="font:500 11px \'IBM Plex Mono\',monospace;color:#6f6a80;">{district}</span>'
+        f"</div>"
+        for name, district in _spots
+    )
+else:
+    _spots_subtext = f"Classic hanami parks near {selected_name.title()}."
+    _spots_rows = (
+        '<div style="font:300 15px/1.6 \'Newsreader\',serif;color:#948fa0;padding-top:8px;">'
+        "Detailed spot guides for this region are coming soon. In the meantime, look for "
+        "<em>sakura namiki</em> (cherry-lined avenues) and castle parks near the city centre — "
+        "most Japanese cities have at least one well-known hanami spot within walking distance of the station."
+        "</div>"
+    )
+
+st.html(f"""
 <style>
-@media (max-width: 640px) {
-    .hanami-grid { grid-template-columns: 1fr !important; gap: 28px !important; }
-}
+@media (max-width: 640px) {{
+    .hanami-grid {{ grid-template-columns: 1fr !important; gap: 28px !important; }}
+}}
 </style>
 <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:30px;margin-top:76px;">
     <div style="font:500 12px/1 'IBM Plex Mono',monospace;letter-spacing:2px;color:#e69bb4;margin-bottom:22px;">
@@ -837,24 +929,9 @@ st.html("""
                 名所 <span style="font:500 14px 'Schibsted Grotesk',sans-serif;color:#948fa0;">Famous spots</span>
             </div>
             <p style="font:300 14px/1.5 'Newsreader',serif;font-style:italic;color:#948fa0;margin:0 0 14px;">
-                Where Tokyo gathers to look up.
+                {_spots_subtext}
             </p>
-            <div style="display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid rgba(255,255,255,.08);padding:10px 0;">
-                <span style="font:300 16px 'Newsreader',serif;color:#eee8f0;">Chidorigafuchi</span>
-                <span style="font:500 11px 'IBM Plex Mono',monospace;color:#6f6a80;">Chiyoda</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid rgba(255,255,255,.08);padding:10px 0;">
-                <span style="font:300 16px 'Newsreader',serif;color:#eee8f0;">Meguro River</span>
-                <span style="font:500 11px 'IBM Plex Mono',monospace;color:#6f6a80;">Meguro</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid rgba(255,255,255,.08);padding:10px 0;">
-                <span style="font:300 16px 'Newsreader',serif;color:#eee8f0;">Ueno Park</span>
-                <span style="font:500 11px 'IBM Plex Mono',monospace;color:#6f6a80;">Tait&#333;</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid rgba(255,255,255,.08);padding:10px 0;">
-                <span style="font:300 16px 'Newsreader',serif;color:#eee8f0;">Shinjuku Gyoen</span>
-                <span style="font:500 11px 'IBM Plex Mono',monospace;color:#6f6a80;">Shinjuku</span>
-            </div>
+            {_spots_rows}
         </div>
 
         <!-- how to hanami -->

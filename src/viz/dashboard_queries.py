@@ -136,7 +136,9 @@ def get_bloom_forecast(location_code: str, year: int = 2026) -> pd.DataFrame:
         model_version,
         prediction_status,
         is_best_model,
-        trained_at
+        trained_at,
+        station_mae_days,
+        mae_days
     FROM analytics.fact_sakura_forecast
     WHERE location_code = :location_code
       AND forecast_year = :year
@@ -191,3 +193,23 @@ def get_sakura_forecast_map(year: int = 2026) -> pd.DataFrame:
         df["predicted_day_of_year"] = pd.to_numeric(df["predicted_day_of_year"], errors='coerce')
 
     return df
+
+
+def get_historical_avg_bloom(location_code: str, n_years: int = 20) -> int | None:
+    query = text("""
+    SELECT ROUND(AVG(day_of_year))::int AS avg_day_of_year
+    FROM (
+        SELECT day_of_year
+        FROM analytics.fact_sakura_events
+        WHERE location_code = :location_code
+          AND event_type = 'sakura_bloom'
+          AND day_of_year IS NOT NULL
+        ORDER BY year DESC
+        LIMIT :n_years
+    ) recent
+    """)
+    engine = get_engine()
+    with engine.connect() as conn:
+        result = conn.execute(query, {"location_code": location_code, "n_years": n_years})
+        row = result.fetchone()
+        return int(row[0]) if row and row[0] is not None else None
