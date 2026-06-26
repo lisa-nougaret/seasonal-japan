@@ -21,6 +21,7 @@ from src.viz.dashboard_queries import (
     get_sakura_forecast_map,
     get_available_forecast_years,
     get_historical_avg_bloom,
+    get_bloom_gap,
 )
 
 from src.viz.plots import (
@@ -826,6 +827,7 @@ if not bloom_temp_df.empty:
 # Forecast info
 
 hist_avg_doy = get_historical_avg_bloom(selected_location_code)
+bloom_gap_days = get_bloom_gap(selected_location_code)
 
 if not forecast_df.empty and pd.notna(forecast_df.loc[0, "predicted_event_date"]):
     bloom_date = pd.to_datetime(forecast_df.loc[0, "predicted_event_date"]).strftime("%d %b %Y")
@@ -847,6 +849,7 @@ forecast_html = render_forecast_section(
     station_name=selected_name,
     forecast_df=forecast_df,
     hist_avg_doy=hist_avg_doy,
+    full_bloom_gap_days=bloom_gap_days,
 )
 if forecast_html:
     st.html(forecast_html)

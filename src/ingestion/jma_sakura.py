@@ -10,13 +10,14 @@ from sqlalchemy import text
 from src.db.db import get_engine
 
 # Constants for JMA sakura bloom data
-SOURCE_NAME = "jma_sakura" # Name of the data source for JMA sakura bloom data
-FIRST_BLOOM_URL = "https://www.data.jma.go.jp/sakura/data/ruinenchi/004.csv" # URL for sakura bloom data from JMA
-FULL_BLOOM_URL = "https://www.data.jma.go.jp/sakura/data/ruinenchi/005.csv" # URL for full bloom data from JMA (note to myself: not currently used in this script, but can be added in the future if needed)
-RAW_TABLE = "jma_sakura_raw" # Name of the raw data table in the database
-RAW_SCHEMA = "raw" # Name of the database schema for raw data
-EVENT_TYPE = "sakura_bloom" # Type of event being recorded
-DATA_STATUS = "observed" # Status of the data being recorded
+SOURCE_NAME = "jma_sakura"
+FIRST_BLOOM_URL = "https://www.data.jma.go.jp/sakura/data/ruinenchi/004.csv"
+FULL_BLOOM_URL = "https://www.data.jma.go.jp/sakura/data/ruinenchi/005.csv"
+RAW_TABLE = "jma_sakura_raw"
+RAW_SCHEMA = "raw"
+FIRST_BLOOM_EVENT_TYPE = "sakura_bloom"
+FULL_BLOOM_EVENT_TYPE = "sakura_fullbloom"
+DATA_STATUS = "observed"
 
 # Regular expression pattern to extract year and bloom date from the data
 REQUEST_HEADERS = {
@@ -274,7 +275,7 @@ def reshape_jma_ruinenchi_to_long(df: pd.DataFrame) -> pd.DataFrame:
 
 
 # Function to build the final raw DataFrame for ingestion by parsing the CSV, reshaping it to long format, and adding metadata columns
-def build_raw_dataframe(csv_text: str) -> pd.DataFrame:
+def build_raw_dataframe(csv_text: str, url: str, event_type: str) -> pd.DataFrame:
     table = parse_jma_csv(csv_text)
 
     long_df = reshape_jma_ruinenchi_to_long(table)
@@ -284,10 +285,10 @@ def build_raw_dataframe(csv_text: str) -> pd.DataFrame:
     raw_ingested_at = pd.Timestamp.utcnow()
     page_notes = "JMA ruinenchi CSV"
 
-    long_df["event_type"] = EVENT_TYPE
+    long_df["event_type"] = event_type
     long_df["data_status"] = DATA_STATUS
     long_df["source_name"] = SOURCE_NAME
-    long_df["source_url"] = FIRST_BLOOM_URL
+    long_df["source_url"] = url
     long_df["page_notes"] = page_notes
     long_df["raw_ingested_at"] = raw_ingested_at
 
@@ -353,7 +354,7 @@ def create_raw_table_if_not_exists() -> None:
 
 
 # Function to delete existing rows in the raw table for this specific source, event type, and data status before loading new data, to ensure a clean reload
-def delete_existing_sakura_rows_for_source() -> None:
+def delete_existing_sakura_rows_for_source(event_type: str) -> None:
     delete_sql = f"""
     DELETE FROM {RAW_SCHEMA}.{RAW_TABLE}
     WHERE source_name = :source_name
@@ -367,7 +368,7 @@ def delete_existing_sakura_rows_for_source() -> None:
             text(delete_sql),
             {
                 "source_name": SOURCE_NAME,
-                "event_type": EVENT_TYPE,
+                "event_type": event_type,
                 "data_status": DATA_STATUS,
             },
         )
@@ -385,30 +386,30 @@ def load_to_raw(df: pd.DataFrame) -> None:
         chunksize=1000,
     )
 
-# Function to orchestrate the entire data ingestion process for JMA sakura bloom data, including fetching the CSV, building the raw DataFrame, ensuring the raw table exists, deleting existing rows for this source, and loading the new data into the raw table.
+def _ingest_one(url: str, event_type: str) -> None:
+    print(f"Fetching {event_type} CSV from {url} ...")
+    csv_text = fetch_text(url)
+
+    print(f"Parsing {event_type} CSV...")
+    df_raw = build_raw_dataframe(csv_text, url=url, event_type=event_type)
+
+    print(f"Rows prepared ({event_type}): {len(df_raw)}")
+
+    print(f"Deleting previous {event_type} rows...")
+    delete_existing_sakura_rows_for_source(event_type=event_type)
+
+    print(f"Loading {event_type} into raw.jma_sakura_raw ...")
+    load_to_raw(df_raw)
+
+
 def main() -> None:
-    print("Fetching sakura source CSV...")
-    csv_text = fetch_text(FIRST_BLOOM_URL)
-
-    print("Parsing sakura CSV...")
-    df_raw = build_raw_dataframe(csv_text)
-
-    print(f"Rows prepared: {len(df_raw)}")
-    print(df_raw.head(10))
-
     print("Ensuring raw table exists...")
     create_raw_table_if_not_exists()
 
-    print("Deleting previous source rows...")
-    delete_existing_sakura_rows_for_source()
-
-    print("Loading into raw.jma_sakura_raw ...")
-    load_to_raw(df_raw)
+    _ingest_one(url=FIRST_BLOOM_URL, event_type=FIRST_BLOOM_EVENT_TYPE)
+    _ingest_one(url=FULL_BLOOM_URL, event_type=FULL_BLOOM_EVENT_TYPE)
 
     print("Done.")
-    print(df_raw.head())
-    print(df_raw.columns)
-    print(df_raw.shape)
 
 if __name__ == "__main__":
     main()

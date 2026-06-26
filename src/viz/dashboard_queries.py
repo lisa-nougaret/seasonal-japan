@@ -195,6 +195,22 @@ def get_sakura_forecast_map(year: int = 2026) -> pd.DataFrame:
     return df
 
 
+def get_bloom_gap(location_code: str) -> int | None:
+    query = text("""
+    SELECT avg_gap_days
+    FROM analytics.fact_sakura_bloom_gap
+    WHERE location_code = :location_code
+    """)
+    engine = get_engine()
+    try:
+        with engine.connect() as conn:
+            result = conn.execute(query, {"location_code": location_code})
+            row = result.fetchone()
+            return int(row[0]) if row and row[0] is not None else None
+    except Exception:
+        return None
+
+
 def get_historical_avg_bloom(location_code: str, n_years: int = 20) -> int | None:
     query = text("""
     SELECT ROUND(AVG(day_of_year))::int AS avg_day_of_year

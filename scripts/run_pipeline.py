@@ -15,6 +15,7 @@ SQL_MODEL_FILES = [
 
     BASE_DIR / "sql" / "marts" / "fact_monthly_climate.sql",
     BASE_DIR / "sql" / "marts" / "fact_sakura_events.sql",
+    BASE_DIR / "sql" / "marts" / "fact_sakura_bloom_gap.sql",
     BASE_DIR / "sql" / "marts" / "fact_sakura_training_features.sql",
     BASE_DIR / "sql" / "marts" / "fact_sakura_prediction_features.sql",
 ]

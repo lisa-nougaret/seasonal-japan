@@ -29,25 +29,36 @@ def format_range_compact(start_date, end_date) -> str:
     return f"{start_date.strftime('%d %b')} – {end_date.strftime('%d %b %Y')}"
 
 
-def get_best_visit_dates(forecast_df: pd.DataFrame) -> dict:
+_DEFAULT_FULL_BLOOM_GAP = 8  # fallback when no historical gap data exists for a station
+
+
+def get_best_visit_dates(forecast_df: pd.DataFrame, full_bloom_gap_days: int | None = None) -> dict:
     if forecast_df.empty or pd.isna(forecast_df.iloc[0]["predicted_event_date"]):
         return {"available": False}
 
     first_bloom = pd.to_datetime(forecast_df.iloc[0]["predicted_event_date"])
+    gap = full_bloom_gap_days if full_bloom_gap_days is not None else _DEFAULT_FULL_BLOOM_GAP
 
-    peak_start = first_bloom + pd.Timedelta(days=4)
-    peak_end = first_bloom + pd.Timedelta(days=6)
+    full_bloom = first_bloom + pd.Timedelta(days=gap)
+    peak_start = full_bloom - pd.Timedelta(days=1)
+    peak_end = full_bloom + pd.Timedelta(days=1)
 
     visit_start = peak_start - pd.Timedelta(days=2)
     visit_end = peak_end + pd.Timedelta(days=4)
 
+    hanafubuki_start = full_bloom + pd.Timedelta(days=3)
+    hanafubuki_end = full_bloom + pd.Timedelta(days=10)
+
     return {
         "available": True,
         "first_bloom": first_bloom,
+        "full_bloom": full_bloom,
         "peak_start": peak_start,
         "peak_end": peak_end,
         "visit_start": visit_start,
         "visit_end": visit_end,
+        "hanafubuki_start": hanafubuki_start,
+        "hanafubuki_end": hanafubuki_end,
     }
 
 
@@ -124,27 +135,31 @@ def render_forecast_section(
     station_name: str,
     forecast_df: pd.DataFrame,
     hist_avg_doy: int | None = None,
+    full_bloom_gap_days: int | None = None,
 ) -> str:
-    dates = get_best_visit_dates(forecast_df)
+    dates = get_best_visit_dates(forecast_df, full_bloom_gap_days=full_bloom_gap_days)
     if not dates["available"]:
         return ""
 
-    first_bloom = dates["first_bloom"]
-    peak_start  = dates["peak_start"]
-    peak_end    = dates["peak_end"]
-    visit_start = dates["visit_start"]
-    visit_end   = dates["visit_end"]
+    first_bloom      = dates["first_bloom"]
+    full_bloom       = dates["full_bloom"]
+    peak_start       = dates["peak_start"]
+    peak_end         = dates["peak_end"]
+    visit_start      = dates["visit_start"]
+    visit_end        = dates["visit_end"]
+    hanafubuki_start = dates["hanafubuki_start"]
+    hanafubuki_end   = dates["hanafubuki_end"]
 
     row = forecast_df.iloc[0]
     station_mae = float(row["station_mae_days"]) if pd.notna(row.get("station_mae_days")) else None
     global_mae  = float(row["mae_days"]) if pd.notna(row.get("mae_days")) else None
     prediction_status = str(row.get("prediction_status", "")) or None
 
-    n_days = 17
+    n_days = (visit_end - first_bloom).days + 3
     cal_days = [first_bloom + pd.Timedelta(days=i) for i in range(n_days)]
 
-    # peak centre index (middle of peak window)
-    peak_center_idx = ((peak_start + (peak_end - peak_start) / 2) - first_bloom).days
+    # peak centre is full bloom day
+    peak_center_idx = (full_bloom - first_bloom).days
 
     best_s = max(0, (visit_start - first_bloom).days)
     best_e = min(n_days - 1, (visit_end - first_bloom).days)
@@ -270,6 +285,7 @@ def render_forecast_section(
                     The luminous overlap of peak bloom and drifting petals.
                 </div>
             </div>
+
         </div>
         {accuracy_html}
     </div>
