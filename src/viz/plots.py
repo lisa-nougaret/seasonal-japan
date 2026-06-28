@@ -63,7 +63,29 @@ def plot_sakura_forecast_map(
         )
     )
 
-    # All stations, slightly faded when one station is selected
+    # Glow layers for all station markers (behind the main markers)
+    for glow_size, glow_opacity in [(24, 0.10), (18, 0.20)]:
+        fig.add_trace(
+            go.Scattergeo(
+                lat=df["latitude"],
+                lon=df["longitude"],
+                mode="markers",
+                marker=dict(
+                    size=glow_size,
+                    opacity=glow_opacity,
+                    color=df["predicted_day_of_year"],
+                    colorscale=colorscale,
+                    cmin=min_val,
+                    cmax=max_val,
+                    line=dict(width=0),
+                    showscale=False,
+                ),
+                hoverinfo="none",
+                showlegend=False,
+            )
+        )
+
+    # All stations
     fig.add_trace(
         go.Scattergeo(
             lat=df["latitude"],
@@ -123,6 +145,25 @@ def plot_sakura_forecast_map(
                 if selected["longitude"] > 140
                 else "middle right"
             )
+
+            # White glow layers behind the selected marker
+            for glow_size, glow_opacity in [(38, 0.10), (28, 0.22), (21, 0.40)]:
+                fig.add_trace(
+                    go.Scattergeo(
+                        lat=[selected["latitude"]],
+                        lon=[selected["longitude"]],
+                        mode="markers",
+                        marker=dict(
+                            size=glow_size,
+                            opacity=glow_opacity,
+                            color="rgba(255,255,255,1)",
+                            line=dict(width=0),
+                            showscale=False,
+                        ),
+                        hoverinfo="skip",
+                        showlegend=False,
+                    )
+                )
 
             fig.add_trace(
                 go.Scattergeo(
