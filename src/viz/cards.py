@@ -155,7 +155,7 @@ def render_forecast_section(
     global_mae  = float(row["mae_days"]) if pd.notna(row.get("mae_days")) else None
     prediction_status = str(row.get("prediction_status", "")) or None
 
-    n_days = (visit_end - first_bloom).days + 3
+    n_days = (hanafubuki_end - first_bloom).days + 2
     cal_days = [first_bloom + pd.Timedelta(days=i) for i in range(n_days)]
 
     # peak centre is full bloom day
@@ -195,13 +195,15 @@ def render_forecast_section(
         )
 
     try:
-        first_label = first_bloom.strftime("%-d %b")
-        peak_label  = f"{peak_start.strftime('%-d')} – {peak_end.strftime('%-d %b')}"
-        visit_label = f"{visit_start.strftime('%-d %b')} – {visit_end.strftime('%-d %b')}"
+        first_label       = first_bloom.strftime("%-d %b")
+        peak_label        = f"{peak_start.strftime('%-d')} – {peak_end.strftime('%-d %b')}"
+        visit_label       = f"{visit_start.strftime('%-d %b')} – {visit_end.strftime('%-d %b')}"
+        hanafubuki_label  = f"{hanafubuki_start.strftime('%-d %b')} – {hanafubuki_end.strftime('%-d %b')}"
     except ValueError:
-        first_label = first_bloom.strftime("%d %b").lstrip("0")
-        peak_label  = f"{peak_start.strftime('%d').lstrip('0')} – {peak_end.strftime('%d %b').lstrip('0')}"
-        visit_label = f"{visit_start.strftime('%d %b')} – {visit_end.strftime('%d %b')}"
+        first_label       = first_bloom.strftime("%d %b").lstrip("0")
+        peak_label        = f"{peak_start.strftime('%d').lstrip('0')} – {peak_end.strftime('%d %b').lstrip('0')}"
+        visit_label       = f"{visit_start.strftime('%d %b')} – {visit_end.strftime('%d %b')}"
+        hanafubuki_label  = f"{hanafubuki_start.strftime('%d %b')} – {hanafubuki_end.strftime('%d %b')}"
 
     station_display = station_name.title()
     forecast_doy    = int(row["predicted_day_of_year"]) if pd.notna(row.get("predicted_day_of_year")) else None
@@ -215,18 +217,19 @@ def render_forecast_section(
         .forecast-stages {{ grid-template-columns: 1fr !important; gap: 0 !important; }}
         .forecast-stages > div + div {{ border-top: 1px solid rgba(255,255,255,.08); }}
     }}
+    @media (min-width: 641px) and (max-width: 860px) {{
+        .forecast-stages {{ grid-template-columns: 1fr 1fr !important; }}
+    }}
     </style>
     <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:30px;margin-top:50px;position:relative;">
-        <div style="margin-bottom:20px;">
-            <div style="font:500 12px/1 'IBM Plex Mono',monospace;letter-spacing:2px;color:#e69bb4;margin-bottom:8px;">
-                予報 &mdash; The forecast for {station_display}{estimated_html}
+        <div style="margin-bottom:34px;">
+            <div style="font:500 12px/1 'IBM Plex Mono',monospace;letter-spacing:2px;color:#e69bb4;margin-bottom:18px;">
+                予報 &mdash; The forecast{estimated_html}
             </div>
-            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px;">
-                <span style="font:400 15px/1.4 'Newsreader',serif;font-style:italic;color:#948fa0;">
-                    Daily bloom intensity through the season.
-                </span>
-                {badge_html}
-            </div>
+            <h2 style="font:300 28px/1.15 'Newsreader',serif;color:#f6f1f4;margin:0 0 16px;">
+                This spring in <em style="font-style:italic;color:#ff8fa9;">{station_display}</em>, day by day.
+            </h2>
+            {badge_html}
         </div>
 
         <!-- calendar strip -->
@@ -239,8 +242,8 @@ def render_forecast_section(
             {cells_html}
         </div>
 
-        <!-- three stages -->
-        <div class="forecast-stages" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;margin-top:24px;
+        <!-- four stages -->
+        <div class="forecast-stages" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:1px;margin-top:24px;
             background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);
             border-radius:12px;overflow:hidden;">
 
@@ -283,6 +286,20 @@ def render_forecast_section(
                 <div style="font:300 28px/1 'Newsreader',serif;color:#f6f1f4;">{visit_label}</div>
                 <div style="font:300 13px/1.45 'Newsreader',serif;color:#948fa0;margin-top:8px;">
                     The luminous overlap of peak bloom and drifting petals.
+                </div>
+            </div>
+
+            <div style="background:#181420;padding:18px 20px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                    <span style="width:9px;height:9px;border-radius:50%;
+                        background:rgba(249,221,223,0.3);border:1px solid rgba(249,221,223,0.45);"></span>
+                    <span style="font:600 14px/1 'Shippori Mincho',serif;color:#b8afc4;">
+                        花吹雪 <span style="font:500 12px 'Schibsted Grotesk',sans-serif;color:#948fa0;">Petal drift</span>
+                    </span>
+                </div>
+                <div style="font:300 28px/1 'Newsreader',serif;color:#b8afc4;">{hanafubuki_label}</div>
+                <div style="font:300 13px/1.45 'Newsreader',serif;color:#948fa0;margin-top:8px;">
+                    Loose petals fill the air in brief, luminous flurries before the season fades.
                 </div>
             </div>
 
